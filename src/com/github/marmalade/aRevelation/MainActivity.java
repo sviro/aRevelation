@@ -7,7 +7,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -18,8 +18,8 @@ import java.util.Arrays;
  */
 public class MainActivity extends Activity {
 
-    private ArrayList<File> filesBrowserItems;
-    private ArrayAdapter<File> filesBrowserAdapter;
+    private ArrayList<FileWrapper> filesBrowserItems;
+    private ArrayAdapter<FileWrapper> filesBrowserAdapter;
     private ListView lv;
     private MenuStatus status;
 
@@ -41,11 +41,11 @@ public class MainActivity extends Activity {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView parent, View v, int position, long id) {
-                        File clickedFile = filesBrowserItems.get(position);
-                        if(clickedFile.isDirectory() && clickedFile.canRead())
+                        FileWrapper clickedFile = filesBrowserItems.get(position);
+                        if(clickedFile.getFile().isDirectory() && clickedFile.getFile().canRead())
                             changeLocation(clickedFile);
-                        else if (clickedFile.isFile() && clickedFile.canRead()) {
-                            checkFile(clickedFile);
+                        else if (clickedFile.getFile().isFile() && clickedFile.getFile().canRead()) {
+                            checkFile(clickedFile.getFile());
                         }
                     }
                 };
@@ -54,31 +54,37 @@ public class MainActivity extends Activity {
             setContentView(R.layout.open_file_layout);
             status = MenuStatus.OpenFile;
             lv = (ListView)findViewById(R.id.listView);
-            filesBrowserItems = new ArrayList<File>();
-            filesBrowserAdapter = new ArrayAdapter<File>(this,
+            filesBrowserItems = new ArrayList<FileWrapper>();
+            filesBrowserAdapter = new ArrayAdapter<FileWrapper>(this,
                     android.R.layout.simple_list_item_1, filesBrowserItems);
             lv.setOnItemClickListener(mMessageClickedHandler);
             lv.setAdapter(filesBrowserAdapter);
-            changeLocation(new File("/"));
+            changeLocation(new FileWrapper(new File("/")));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void changeLocation(File path) {
+    private void changeLocation(FileWrapper path) {
         filesBrowserItems.clear();
-        if(path.getParent() != null)
-            filesBrowserItems.add(new FileListItem(path.getParent(), "..."));
-        String[] sortedChildren = path.list();
+        if(path.getFile().getParent() != null)
+            filesBrowserItems.add(new FileWrapper(path.getFile().getParentFile(), "..."));
+        File[] sortedChildren = path.getFile().listFiles();
         Arrays.sort(sortedChildren);
-        for(String childFile : sortedChildren)
-            filesBrowserItems.add(new FileListItem(childFile));
+        for(File childFile : sortedChildren)
+            filesBrowserItems.add(new FileWrapper(childFile));
         filesBrowserAdapter.notifyDataSetChanged();
     }
 
     private boolean checkFile(File file) {
-        //TODO Implementation of file checking
-        throw new UnsupportedOperationException("No implementation of checkFile method.");
+        try {
+            byte[] header = new byte[74];
+            new DataInputStream(new FileInputStream(file)).readFully(header);
+            //TODO Implementation of file checking
+            throw new UnsupportedOperationException("No implementation of checkFile method.");
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private void goToStartLayout() {
@@ -97,31 +103,31 @@ public class MainActivity extends Activity {
           super.onBackPressed();
     }
 
-    private class FileListItem extends File {
+    private class FileWrapper {
 
-        String name;
+        private File file;
 
-        @Override
-        public String toString() {
-            if(name != null)
-                return name;
-            else
-                return getName();
+        private String name;
+
+        FileWrapper(File file) {
+            this.file = file;
+            this.name = file.getName();
         }
 
-        FileListItem(String path) {
-            super(path);
-        }
-
-        FileListItem(String path, String name) {
-            super(path);
+        FileWrapper(File file, String name) {
+            this.file = file;
             this.name = name;
         }
 
-        @Override
-        public String getParent() {
-            return new File(getAbsolutePath()).getParent();
+        File getFile() {
+            return file;
         }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
     }
 
     enum MenuStatus {
