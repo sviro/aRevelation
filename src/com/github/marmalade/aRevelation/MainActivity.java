@@ -74,6 +74,7 @@ public class MainActivity extends Activity {
         for(File childFile : sortedChildren)
             filesBrowserItems.add(new FileWrapper(childFile));
         filesBrowserAdapter.notifyDataSetChanged();
+        lv.setSelection(0);
     }
 
     private boolean checkFile(File file) {
