@@ -1,6 +1,8 @@
 package com.github.marmalade.aRevelation;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -77,14 +79,26 @@ public class MainActivity extends Activity {
         lv.setSelection(0);
     }
 
-    private boolean checkFile(File file) {
+    private void checkFile(File file) {
+
+        DialList dialogClickListener = new DialList(file);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Do you want to open " + file.getName() + "?")
+                .setNegativeButton("No", dialogClickListener)
+                .setPositiveButton("Yes", dialogClickListener)
+                .show();
+    }
+
+    private void openFile(File file) {
         try {
             byte[] header = new byte[74];
             new DataInputStream(new FileInputStream(file)).readFully(header);
+
             //TODO Implementation of file checking
             throw new UnsupportedOperationException("No implementation of checkFile method.");
         } catch (IOException e) {
-            return false;
+
         }
     }
 
@@ -129,6 +143,28 @@ public class MainActivity extends Activity {
             return name;
         }
 
+    }
+
+    private class DialList implements DialogInterface.OnClickListener {
+
+        private File file;
+
+        DialList(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which){
+                case DialogInterface.BUTTON_POSITIVE:
+                    openFile(file);
+                    break;
+
+                case DialogInterface.BUTTON_NEGATIVE:
+                    // Nothing to do
+                    break;
+            }
+        }
     }
 
     enum MenuStatus {
