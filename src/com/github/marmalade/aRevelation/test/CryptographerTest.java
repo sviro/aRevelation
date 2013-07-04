@@ -17,7 +17,7 @@ public class CryptographerTest extends TestCase {
         File file = new File("test/rvl_test-0.4.14");
 
         try {
-            Cryptographer.encrypt(file);
+            Cryptographer.decrypt(file);
         }
         catch (Exception entt){
             entt.printStackTrace();

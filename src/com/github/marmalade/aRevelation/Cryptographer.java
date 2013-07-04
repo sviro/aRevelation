@@ -24,7 +24,7 @@ public class Cryptographer {
     final static byte[] MAGIC_STRING_DATA_VERSION_2 = new byte[] {'r', 'v', 'l', 0, 2, 0};
     final static byte[] VERSION_0_4_7 = new byte[] {0, 4, 7};
 
-    public static String encrypt(File file) throws Exception {
+    public static String decrypt(File file) throws Exception {
         byte[] header = new byte[74];
         new DataInputStream(new FileInputStream(file)).readFully(header);
 
