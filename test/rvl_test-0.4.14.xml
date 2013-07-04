@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<revelationdata version="0.4.14" dataversion="1">
+
+	<entry type="phone">
+		<name>test</name>
+		<description>test desc</description>
+		<updated>1372121073</updated>
+		<notes>test note</notes>
+		<field id="phone-phonenumber">+7555-985-43-23</field>
+		<field id="generic-pin">2134</field>
+	</entry>
+</revelationdata>

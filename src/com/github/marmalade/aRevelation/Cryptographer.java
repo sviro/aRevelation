@@ -6,18 +6,15 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 /**
- * Created with IntelliJ IDEA.
- * User: user
+ * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
  * Date: 6/26/13
  * Time: 2:44 AM
- * To change this template use File | Settings | File Templates.
  */
 public class Cryptographer {
 

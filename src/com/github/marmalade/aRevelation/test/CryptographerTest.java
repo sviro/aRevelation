@@ -1,32 +1,33 @@
 package com.github.marmalade.aRevelation.test;
 
 import com.github.marmalade.aRevelation.Cryptographer;
+
 import junit.framework.TestCase;
 
 import java.io.File;
+import java.io.FileInputStream;
 
 /**
- * Created with IntelliJ IDEA.
- * User: user
+ * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
  * Date: 6/30/13
  * Time: 11:32 AM
- * To change this template use File | Settings | File Templates.
  */
 public class CryptographerTest extends TestCase {
-    public void testEncrypt() {
-        File file = new File("test/rvl_test-0.4.14");
 
+    public void encrypt() {
         try {
-            Cryptographer.decrypt(file);
+            File file = new File("test/rvl_test-0.4.14");
+            FileInputStream input = new FileInputStream("test/rvl_test-0.4.14.xml");
+            byte[] fileData = new byte[input.available()];
+            input.read(fileData);
+            input.close();
+            String expectedResult = new String(fileData, "UTF-8");
+            assertEquals("Testing simple decrypt",expectedResult, Cryptographer.decrypt(file));
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert(false);
         }
-        catch (Exception entt){
-            entt.printStackTrace();
-            fail("WHOOPS! Threw ExceptionNotToThrow" + entt.toString());
-        }
-        catch (Throwable t){
-            //do nothing since other exceptions are OK
-        }
-        assertTrue(true);
+
     }
 
 }
