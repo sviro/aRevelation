@@ -92,13 +92,11 @@ public class MainActivity extends Activity {
 
     private void openFile(File file) {
         try {
-            byte[] header = new byte[74];
-            new DataInputStream(new FileInputStream(file)).readFully(header);
+            Cryptographer.encrypt(file);
 
-            //TODO Implementation of file checking
             throw new UnsupportedOperationException("No implementation of checkFile method.");
-        } catch (IOException e) {
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -166,6 +164,8 @@ public class MainActivity extends Activity {
             }
         }
     }
+
+
 
     enum MenuStatus {
         MainPage,

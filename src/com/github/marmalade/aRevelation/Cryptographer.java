@@ -5,13 +5,12 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,7 +24,7 @@ public class Cryptographer {
     final static byte[] MAGIC_STRING_DATA_VERSION_2 = new byte[] {'r', 'v', 'l', 0, 2, 0};
     final static byte[] VERSION_0_4_7 = new byte[] {0, 4, 7};
 
-    static String encrypt(File file) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException {
+    public static String encrypt(File file) throws Exception {
         byte[] header = new byte[74];
         new DataInputStream(new FileInputStream(file)).readFully(header);
 
@@ -44,10 +43,22 @@ public class Cryptographer {
                 cypher.init(Cipher.DECRYPT_MODE, k, new IvParameterSpec(iv));
 
                 RandomAccessFile f = new RandomAccessFile(file.getAbsoluteFile(), "r");
-                byte[] data = new byte[(int)f.length()];
-                f.read(data);
-                data = Arrays.copyOfRange(data, 32, (int)f.length() - 1);
-                cypher.doFinal(data);
+                byte[] fileData = new byte[(int)f.length()];
+                f.read(fileData);
+                byte[] input = Arrays.copyOfRange(fileData, 36, (int)f.length());
+                byte[] compressedData = cypher.doFinal(input);
+
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                md.update(compressedData);
+                if(Arrays.equals(md.digest(), Arrays.copyOfRange(input, 0, 36))) {
+                    throw new Exception("Invalid data");
+                }
+
+                String g = bytArrayToHex(compressedData);
+
+
+
+                byte[] result = unzipByteArray(Arrays.copyOfRange(compressedData,32, compressedData.length));
 
 
                 String sx = "";
@@ -63,4 +74,20 @@ public class Cryptographer {
             sb.append(String.format("%02x", b&0xff));
         return sb.toString();
     }
+
+    private static byte[] unzipByteArray(byte[] inputData) throws DataFormatException, IOException {
+        Inflater decompressor = new Inflater();
+        decompressor.setInput(inputData);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(inputData.length);
+        byte[] buf = new byte[1024];
+        while (!decompressor.finished()) {
+            int count = decompressor.inflate(buf);
+            bos.write(buf, 0, count);
+        }
+        bos.close();
+        String outString = new String(bos.toByteArray());
+        return bos.toByteArray();
+    }
+
+
 }
