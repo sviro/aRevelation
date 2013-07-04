@@ -3,6 +3,7 @@ package com.github.marmalade.aRevelation.test;
 import com.github.marmalade.aRevelation.Cryptographer;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,10 +15,11 @@ import java.io.FileInputStream;
  */
 public class CryptographerTest extends TestCase {
 
-    public void encrypt() {
+    @Test
+    public void testEncrypt() {
         try {
-            File file = new File("test/rvl_test-0.4.14");
-            FileInputStream input = new FileInputStream("test/rvl_test-0.4.14.xml");
+            File file = new File("test/res/rvl_test-0.4.14");
+            FileInputStream input = new FileInputStream("test/res/rvl_test-0.4.14.xml");
             byte[] fileData = new byte[input.available()];
             input.read(fileData);
             input.close();
