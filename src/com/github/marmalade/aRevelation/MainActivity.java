@@ -92,8 +92,7 @@ public class MainActivity extends Activity {
 
     private void openFile(File file) {
         try {
-            Cryptographer.encrypt(file);
-
+            Cryptographer.decrypt(file);
             throw new UnsupportedOperationException("No implementation of checkFile method.");
         } catch (Exception e) {
             e.printStackTrace();
@@ -164,7 +163,6 @@ public class MainActivity extends Activity {
             }
         }
     }
-
 
 
     enum MenuStatus {

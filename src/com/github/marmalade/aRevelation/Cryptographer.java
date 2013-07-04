@@ -54,18 +54,12 @@ public class Cryptographer {
                     throw new Exception("Invalid data");
                 }
 
-                String g = bytArrayToHex(compressedData);
-
-
-
                 byte[] result = unzipByteArray(Arrays.copyOfRange(compressedData,32, compressedData.length));
-
-
-                String sx = "";
+                return new String(result);
             }
         }
 
-        return null;
+        throw new Exception("Unknown file format");
     }
 
     private static String bytArrayToHex(byte[] a) {
