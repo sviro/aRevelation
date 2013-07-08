@@ -24,7 +24,7 @@ public class CryptographerTest extends TestCase {
             input.read(fileData);
             input.close();
             String expectedResult = new String(fileData, "UTF-8");
-            assertEquals("Testing simple decrypt",expectedResult, Cryptographer.decrypt(file));
+            assertEquals("Testing simple decrypt",expectedResult, Cryptographer.decrypt(file, "test"));
         } catch (Exception e) {
             e.printStackTrace();
             assert(false);

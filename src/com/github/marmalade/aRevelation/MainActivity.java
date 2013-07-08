@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.io.*;
@@ -23,7 +24,7 @@ public class MainActivity extends Activity {
     private ArrayList<FileWrapper> filesBrowserItems;
     private ArrayAdapter<FileWrapper> filesBrowserAdapter;
     private ListView lv;
-    private MenuStatus status;
+    MenuStatus status;
 
 
     @Override
@@ -47,7 +48,7 @@ public class MainActivity extends Activity {
                         if(clickedFile.getFile().isDirectory() && clickedFile.getFile().canRead())
                             changeLocation(clickedFile);
                         else if (clickedFile.getFile().isFile() && clickedFile.getFile().canRead()) {
-                            checkFile(clickedFile.getFile());
+                            askIfOpenFile(clickedFile.getFile());
                         }
                     }
                 };
@@ -79,9 +80,22 @@ public class MainActivity extends Activity {
         lv.setSelection(0);
     }
 
-    private void checkFile(File file) {
+    private void askIfOpenFile(final File file) {
 
-        DialList dialogClickListener = new DialList(file);
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        askPassword(file);
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        // Nothing to do
+                        break;
+                }
+            }
+        };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Do you want to open " + file.getName() + "?")
@@ -90,12 +104,37 @@ public class MainActivity extends Activity {
                 .show();
     }
 
-    private void openFile(File file) {
+    private void askPassword(final File file) {
+        final EditText input = new EditText(MainActivity.this);
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        openFile(file, input.getText().toString());
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        // Nothing to do
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Input password")
+                .setView(input)
+                .setNegativeButton("Cancel", dialogClickListener)
+                .setPositiveButton("Submit", dialogClickListener)
+                .show();
+    }
+
+    private void openFile(File file, String password) {
         try {
-            Cryptographer.decrypt(file);
-            throw new UnsupportedOperationException("No implementation of checkFile method.");
+            String decryptedXML = Cryptographer.decrypt(file, password);
+            Display.showRevelationEntries(decryptedXML, this);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new UnsupportedOperationException("No implementation of error processing.");
         }
     }
 
@@ -142,31 +181,9 @@ public class MainActivity extends Activity {
 
     }
 
-    private class DialList implements DialogInterface.OnClickListener {
-
-        private File file;
-
-        DialList(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            switch (which){
-                case DialogInterface.BUTTON_POSITIVE:
-                    openFile(file);
-                    break;
-
-                case DialogInterface.BUTTON_NEGATIVE:
-                    // Nothing to do
-                    break;
-            }
-        }
-    }
-
-
     enum MenuStatus {
         MainPage,
-        OpenFile
+        OpenFile,
+        DecryptedEntriesDisplay
     }
 }

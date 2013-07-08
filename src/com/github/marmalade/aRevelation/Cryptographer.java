@@ -21,7 +21,7 @@ public class Cryptographer {
     final static byte[] MAGIC_STRING_DATA_VERSION_2 = new byte[] {'r', 'v', 'l', 0, 2, 0};
     final static byte[] VERSION_0_4_7 = new byte[] {0, 4, 7};
 
-    public static String decrypt(File file) throws Exception {
+    public static String decrypt(File file, String password) throws Exception {
         byte[] header = new byte[74];
         new DataInputStream(new FileInputStream(file)).readFully(header);
 
@@ -34,7 +34,7 @@ public class Cryptographer {
                 iv = Arrays.copyOfRange(header, 20, 36);
                 Cipher cypher = Cipher.getInstance("AES/CBC/PKCS5Padding");
                 SecretKeyFactory scf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-                KeySpec ks = new PBEKeySpec("test".toCharArray(), salt, 12000, 256);
+                KeySpec ks = new PBEKeySpec(password.toCharArray(), salt, 12000, 256);
                 SecretKey s = scf.generateSecret(ks);                                           // Bottleneck (12k)
                 Key k = new SecretKeySpec(s.getEncoded(),"AES");
                 cypher.init(Cipher.DECRYPT_MODE, k, new IvParameterSpec(iv));
