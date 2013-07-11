@@ -2,6 +2,7 @@ package com.github.marmalade.aRevelation.test;
 
 import com.github.marmalade.aRevelation.Cryptographer;
 
+import com.github.marmalade.aRevelation.Display;
 import junit.framework.TestCase;
 import org.junit.Test;
 
@@ -30,6 +31,21 @@ public class CryptographerTest extends TestCase {
             assert(false);
         }
 
+    }
+
+    @Test
+    public void testParsing() {
+        try {
+            FileInputStream input = new FileInputStream("test/res/rvl_test-0.4.14.xml");
+            byte[] fileData = new byte[input.available()];
+            input.read(fileData);
+            input.close();
+            String inputData = new String(fileData, "UTF-8");
+            Display.Entry.parseDecryptedXml(inputData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert(false);
+        }
     }
 
 }
