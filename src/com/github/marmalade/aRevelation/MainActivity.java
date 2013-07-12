@@ -58,8 +58,8 @@ public class MainActivity extends Activity {
             setContentView(R.layout.open_file_layout);
             status = MenuStatus.OpenFile;
             lv = (ListView)findViewById(R.id.listView);
-            filesBrowserItems = new ArrayList<FileWrapper>();
-            filesBrowserAdapter = new ArrayAdapter<FileWrapper>(this,
+            filesBrowserItems = new ArrayList<>();
+            filesBrowserAdapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_list_item_1, filesBrowserItems);
             lv.setOnItemClickListener(mMessageClickedHandler);
             lv.setAdapter(filesBrowserAdapter);
