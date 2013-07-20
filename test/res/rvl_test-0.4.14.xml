@@ -13,6 +13,17 @@
 		<field id="generic-pin">0000</field>
 	</entry>
 
+	<entry type="cryptokey">
+		<name>Crypto KeyEntry</name>
+		<description>Desc</description>
+		<updated>1374331906</updated>
+		<notes>Note</notes>
+		<field id="generic-hostname">Host</field>
+		<field id="generic-certificate">/home/user/domain.csr</field>
+		<field id="generic-keyfile">/home/user/domain.key</field>
+		<field id="generic-password">t,B2]XUa</field>
+	</entry>
+
 	<entry type="door">
 		<name>Door</name>
 		<description>just door</description>
@@ -88,6 +99,16 @@ Note 3.</notes>
 		<field id="generic-port">3322</field>
 		<field id="generic-username">user</field>
 		<field id="generic-password">8#Jcb[V$</field>
+	</entry>
+
+	<entry type="generic">
+		<name>Generic example</name>
+		<description>Description</description>
+		<updated>1374331227</updated>
+		<notes>note</notes>
+		<field id="generic-hostname">Host</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">KT7W8y|p</field>
 	</entry>
 
 	<entry type="website">

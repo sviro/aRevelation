@@ -1,22 +1,26 @@
 package com.github.marmalade.aRevelation;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
@@ -37,14 +41,55 @@ public class Display {
     private static List<Entry> entries;
     private static ArrayAdapter<Entry> entryArrayAdapter;
     private static ListView lv;
+    private static MainActivity activity;
 
-    static void showRevelationEntries(String decryptedXML, MainActivity activity) {
+    private static AdapterView.OnItemClickListener mMessageClickedHandler =
+            new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView parent, View v, int position, long id) {
+
+                }
+            };
+
+    private static AdapterView.OnItemLongClickListener mMessageLongClickedHandler =
+            new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
+
+                    final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
+
+                    ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<>(activity,
+                            android.R.layout.simple_list_item_1, menuItems);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                    final CharSequence[] items= ActionsMenuItems.getCharSequences();
+                    builder.setItems(items,new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
+                                ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                                ClipData clip = ClipData.newPlainText("pass",entries.get(i).getSecretFieldData());
+                                clipboard.setPrimaryClip(clip);
+                            }
+                        }
+                    });
+
+                    Dialog d = builder.create();
+                    d.show();
+                    return false;
+                }
+            };
+
+
+    static void showRevelationEntries(String decryptedXML, MainActivity activity)   {
         try {
+            Display.activity = activity;
             activity.setContentView(R.layout.decrypted_file_layout);
             activity.status = MainActivity.MenuStatus.DecryptedEntriesDisplay;
             lv = (ListView)activity.findViewById(R.id.itemsListView);
+            lv.setOnItemClickListener(mMessageClickedHandler);
+            lv.setOnItemLongClickListener(mMessageLongClickedHandler);
             entries = Entry.parseDecryptedXml(decryptedXML);
-            entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
+            entryArrayAdapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, entries);
             lv.setAdapter(entryArrayAdapter);
             entryArrayAdapter.notifyDataSetChanged();
 
@@ -53,8 +98,20 @@ public class Display {
         }
     }
 
-
     public static class Entry {
+
+        private String name, description, updated, notes;
+        private HashMap<String, String> fields;
+        EntryType type;
+
+        private Entry(String name, String description, String updated, String notes, HashMap<String, String> fields, String type) throws Exception {
+            this.name = name;
+            this.description = description;
+            this.updated = updated;
+            this.notes = notes;
+            this.fields = fields;
+            this.type = EntryType.getType(type);
+        }
 
         public static List<Entry> parseDecryptedXml(String rvlXml) throws Exception {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -76,57 +133,125 @@ public class Display {
         }
 
         private static Entry getEntry(Element elem) throws Exception {
+            String name = "", descr = "", updated = "", notes = "", type="";
+            NodeList nameL = elem.getChildNodes();
+            type = elem.getAttribute(TYPE_ATTRIBUTE);
 
-            if(elem.getAttribute(TYPE_ATTRIBUTE).equals(Phone.TYPE)) {
-                String name = "", descr = "", updated = "", notes = "";
-                NodeList nameL = elem.getElementsByTagName(ENTRY_NODE_NAME);
-                HashMap<String, String> fields = new HashMap<String, String>();
-                for(int i = 0; i < nameL.getLength(); i++) {
-                    if(nameL.item(i).getNodeName().equals(NAME_ATTRIBUTE))
-                        name =  nameL.item(i).getTextContent();
-                    else if (nameL.item(i).getNodeName().equals(DESCRIPTION_ATTRIBUTE))
-                        descr = nameL.item(i).getTextContent();
-                    else if (nameL.item(i).getNodeName().equals(UPDATED_ATTRIBUTE))
-                        updated = nameL.item(i).getTextContent();
-                    else if (nameL.item(i).getNodeName().equals(NOTES_ATTRIBUTE))
-                        notes = nameL.item(i).getTextContent();
-                    else if (nameL.item(i).getNodeName().equals(FIELD_ATTRIBUTE)) {
-                        String fieldName = ( (Element)nameL.item(i)).getAttribute(ID_ATTRIBUTE);
-                        String value = nameL.item(i).getTextContent();
-                        if(fieldName != null)
-                            fields.put(fieldName, value);
-                    } else
-                        throw new Exception("Unknown node type - " + nameL.item(i).getNodeName());
-                }
-                return new Phone(name, descr, updated, notes, fields);
-
+            HashMap<String, String> attr = new HashMap();
+            for(int i = 0; i < nameL.getLength(); i++) {
+                Node item = nameL.item(i);
+                if(item.getNodeName().equals(NAME_ATTRIBUTE))
+                    name =  item.getTextContent();
+                else if (item.getNodeName().equals(DESCRIPTION_ATTRIBUTE))
+                    descr = item.getTextContent();
+                else if (item.getNodeName().equals(UPDATED_ATTRIBUTE))
+                    updated = item.getTextContent();
+                else if (item.getNodeName().equals(NOTES_ATTRIBUTE))
+                    notes = item.getTextContent();
+                else if (item.getNodeName().equals(FIELD_ATTRIBUTE)) {
+                    String fieldName = ( (Element)item).getAttribute(ID_ATTRIBUTE);
+                    String value = nameL.item(i).getTextContent();
+                    if(fieldName != null)
+                        attr.put(fieldName, value);
+                } else
+                        ;//throw new Exception("Unknown node type - " + nameL.item(i).getNodeName());
             }
-            else
-                throw new Exception("Unknown type of XML node");
-        }
-    }
-
-    private static class Phone extends Entry {
-
-        final static String TYPE = "phone";
-
-        private String name;
-
-        Phone(String name,
-              String description,
-              String updated,
-              String notes,
-              Map<String, String> fields) {
-            this.name = name;
-
+            return new Entry(name, descr, updated, notes, attr, type);
         }
 
         @Override
         public String toString() {
             return name;
         }
+
+        String getSecretFieldData() {
+            if(type == EntryType.creditcard)
+                return fields.get("generic-pin");
+            else if (type == EntryType.door)
+                return fields.get("generic-code");
+            else if (type == EntryType.phone)
+                return fields.get("generic-pin");
+            else if (
+                    type == EntryType.database
+                 || type == EntryType.cryptokey
+                 || type == EntryType.email
+                 || type == EntryType.generic
+                 || type == EntryType.ftp
+                 || type == EntryType.remotedesktop
+                 || type == EntryType.shell
+                 || type == EntryType.vnc
+                 || type == EntryType.website)
+            return fields.get("generic-password");
+            else
+                return "";
+        }
     }
 
+    static enum EntryType {
+        creditcard,
+        cryptokey,
+        door,
+        database,
+        email,
+        ftp,
+        generic,
+        remotedesktop,
+        shell,
+        vnc,
+        website,
+        phone;
 
+        static EntryType getType(String type) throws Exception {
+            if(type.equals(EntryType.creditcard.toString()))
+                return EntryType.creditcard;
+            else if(type.equals(EntryType.cryptokey.toString()))
+                return EntryType.cryptokey;
+            else if (type.equals(EntryType.database.toString()))
+                return EntryType.database;
+            else if (type.equals(EntryType.door.toString()))
+                return EntryType.door;
+            else if (type.equals(EntryType.email.toString()))
+                return EntryType.email;
+            else if (type.equals(EntryType.ftp.toString()))
+                return EntryType.ftp;
+            else if (type.equals(EntryType.generic.toString()))
+                return EntryType.generic;
+            else if (type.equals(EntryType.phone.toString()))
+                return EntryType.phone;
+            else if (type.equals(EntryType.remotedesktop.toString()))
+                return EntryType.remotedesktop;
+            else if (type.equals(EntryType.shell.toString()))
+                return EntryType.shell;
+            else if (type.equals(EntryType.vnc.toString()))
+                return EntryType.vnc;
+            else if (type.equals(EntryType.website.toString()))
+                return EntryType.website;
+            else throw new Exception("Unknown type of entry - " + type);
+        }
+
+    }
+
+    /**
+     * Menu items of entry manipulating
+     */
+    static enum ActionsMenuItems {
+        copySecretData;
+
+        @Override
+        public String toString() {
+            if(this == ActionsMenuItems.copySecretData)
+                return "Copy secret data";
+            else
+                return super.toString();
+        }
+
+        static CharSequence[] getCharSequences() {
+            CharSequence[] result = new CharSequence[values().length];
+            for(int i = 0; i < values().length; i++) {
+                result[i] = values()[i].toString();
+            }
+            return result;
+        }
+    }
 
 }
