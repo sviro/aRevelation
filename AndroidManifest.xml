@@ -8,6 +8,7 @@
         android:installLocation="auto">
     <application>
         <activity
+                android:label="aRevelation"
                 android:name="com.github.marmalade.aRevelation.MainActivity"
                 android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
             <intent-filter>
