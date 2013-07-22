@@ -58,7 +58,7 @@ public class Display {
 
                     final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
 
-                    ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<>(activity,
+                    ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<ActionsMenuItems>(activity,
                             android.R.layout.simple_list_item_1, menuItems);
                     AlertDialog.Builder builder = new AlertDialog.Builder(activity);
                     final CharSequence[] items= ActionsMenuItems.getCharSequences();
@@ -89,7 +89,7 @@ public class Display {
             lv.setOnItemClickListener(mMessageClickedHandler);
             lv.setOnItemLongClickListener(mMessageLongClickedHandler);
             entries = Entry.parseDecryptedXml(decryptedXML);
-            entryArrayAdapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_1, entries);
+            entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
             lv.setAdapter(entryArrayAdapter);
             entryArrayAdapter.notifyDataSetChanged();
 
@@ -121,7 +121,7 @@ public class Display {
             doc.getDocumentElement().normalize();
             NodeList nodeList = doc.getElementsByTagName(ENTRY_NODE_NAME);
 
-            List<Entry> result = new ArrayList<>();
+            List<Entry> result = new ArrayList<Entry>();
 
             for(int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
