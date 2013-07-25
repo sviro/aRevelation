@@ -150,8 +150,10 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if(status == MenuStatus.OpenFile)
+        if(status == MenuStatus.OpenFile || status == MenuStatus.DecryptedEntriesDisplay)
             goToStartLayout();
+        else if (status == MenuStatus.EntryDisplay)
+            Display.showRevelationEntries(Display.decryptedXml, this);
         else
           super.onBackPressed();
     }
@@ -186,6 +188,7 @@ public class MainActivity extends Activity {
     enum MenuStatus {
         MainPage,
         OpenFile,
-        DecryptedEntriesDisplay
+        DecryptedEntriesDisplay,
+        EntryDisplay
     }
 }

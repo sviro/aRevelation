@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -21,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
@@ -38,8 +40,13 @@ public class Display {
     final static String FIELD_ATTRIBUTE = "field";
     final static String ID_ATTRIBUTE = "id";
 
+    static String decryptedXml;
     private static List<Entry> entries;
     private static ArrayAdapter<Entry> entryArrayAdapter;
+
+    private static List<Object> fields;
+    private static ArrayAdapter<Object> fieldArrayAdapter;
+
     private static ListView lv;
     private static MainActivity activity;
 
@@ -47,41 +54,40 @@ public class Display {
             new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView parent, View v, int position, long id) {
-
+                    showRevelationEntry(entries.get(position), activity);
                 }
             };
 
     private static AdapterView.OnItemLongClickListener mMessageLongClickedHandler =
-            new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
-
-                    final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
-
-                    ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<ActionsMenuItems>(activity,
-                            android.R.layout.simple_list_item_1, menuItems);
-                    AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                    final CharSequence[] items= ActionsMenuItems.getCharSequences();
-                    builder.setItems(items,new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
-                                ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData clip = ClipData.newPlainText("pass",entries.get(i).getSecretFieldData());
-                                clipboard.setPrimaryClip(clip);
-                            }
+        new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
+                final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
+                ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<ActionsMenuItems>(activity,
+                        android.R.layout.simple_list_item_1, menuItems);
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                final CharSequence[] items= ActionsMenuItems.getCharSequences();
+                builder.setItems(items,new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
+                            ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                            ClipData clip = ClipData.newPlainText("pass",entries.get(i).getSecretFieldData());
+                            clipboard.setPrimaryClip(clip);
                         }
-                    });
+                    }
+                });
 
-                    Dialog d = builder.create();
-                    d.show();
-                    return false;
-                }
-            };
+                Dialog d = builder.create();
+                d.show();
+                return false;
+            }
+        };
 
 
     static void showRevelationEntries(String decryptedXML, MainActivity activity)   {
         try {
+            Display.decryptedXml = decryptedXML;
             Display.activity = activity;
             activity.setContentView(R.layout.decrypted_file_layout);
             activity.status = MainActivity.MenuStatus.DecryptedEntriesDisplay;
@@ -97,6 +103,41 @@ public class Display {
             e.printStackTrace();
         }
     }
+
+    private static void showRevelationEntry(Entry entry, MainActivity activity) {
+        activity.status = MainActivity.MenuStatus.EntryDisplay;
+        List<Map<String, String>> data = new ArrayList<Map<String, String>>();
+        HashMap<String, String> values = new HashMap<String, String>();
+        values.put("First Line", "Name");
+        values.put("Second Line", entry.name);
+        data.add(values);
+        values = new HashMap<String, String>();
+        values.put("First Line", "Description");
+        values.put("Second Line", entry.description);
+        data.add(values);
+        for(String key : entry.fields.keySet()) {
+            values = new HashMap<String, String>();
+            values.put("First Line", key);
+            values.put("Second Line", entry.fields.get(key));
+            data.add(values);
+        }
+        values = new HashMap<String, String>();
+        values.put("First Line", "Notes");
+        values.put("Second Line", entry.notes);
+        data.add(values);
+        values = new HashMap<String, String>();
+        values.put("First Line", "Updated");
+        values.put("Second Line", entry.updated);
+        data.add(values);
+
+        SimpleAdapter adapter = new SimpleAdapter(activity, data,
+                android.R.layout.simple_list_item_2,
+                new String[] {"First Line", "Second Line" },
+                new int[] {android.R.id.text1, android.R.id.text2 });
+        lv.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+    }
+
 
     public static class Entry {
 
@@ -187,6 +228,7 @@ public class Display {
         }
     }
 
+
     static enum EntryType {
         creditcard,
         cryptokey,
@@ -230,6 +272,8 @@ public class Display {
         }
 
     }
+
+
 
     /**
      * Menu items of entry manipulating
