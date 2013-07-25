@@ -50,7 +50,7 @@ public class Display {
     private static ListView lv;
     private static MainActivity activity;
 
-    private static AdapterView.OnItemClickListener mMessageClickedHandler =
+    private static AdapterView.OnItemClickListener entryItemClickListener =
             new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView parent, View v, int position, long id) {
@@ -58,7 +58,7 @@ public class Display {
                 }
             };
 
-    private static AdapterView.OnItemLongClickListener mMessageLongClickedHandler =
+    private static AdapterView.OnItemLongClickListener entryLongClickListener =
         new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
@@ -84,6 +84,23 @@ public class Display {
             }
         };
 
+    private static AdapterView.OnItemClickListener fieldItemClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+    };
+
+    private static AdapterView.OnItemLongClickListener fieldLongClickListener =
+        new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
+                return true;
+            }
+    };
+
+
+
 
     static void showRevelationEntries(String decryptedXML, MainActivity activity)   {
         try {
@@ -92,8 +109,8 @@ public class Display {
             activity.setContentView(R.layout.decrypted_file_layout);
             activity.status = MainActivity.MenuStatus.DecryptedEntriesDisplay;
             lv = (ListView)activity.findViewById(R.id.itemsListView);
-            lv.setOnItemClickListener(mMessageClickedHandler);
-            lv.setOnItemLongClickListener(mMessageLongClickedHandler);
+            lv.setOnItemClickListener(entryItemClickListener);
+            lv.setOnItemLongClickListener(entryLongClickListener);
             entries = Entry.parseDecryptedXml(decryptedXML);
             entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
             lv.setAdapter(entryArrayAdapter);
@@ -106,6 +123,8 @@ public class Display {
 
     private static void showRevelationEntry(Entry entry, MainActivity activity) {
         activity.status = MainActivity.MenuStatus.EntryDisplay;
+        lv.setOnItemClickListener(fieldItemClickListener);
+        lv.setOnItemLongClickListener(fieldLongClickListener);
         List<Map<String, String>> data = new ArrayList<Map<String, String>>();
         HashMap<String, String> values = new HashMap<String, String>();
         values.put("First Line", "Name");
