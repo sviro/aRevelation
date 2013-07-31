@@ -8,7 +8,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="Tap to open the File"
+            android:text="@string/tap_to_open"
             android:onClick="openFile"
             android:clickable="true"
             android:id="@+id/tv"/>

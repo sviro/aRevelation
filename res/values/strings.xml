@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tap_to_open">Tap to open file</string>
+    <string name="name">Name</string>
+    <string name="password">Password</string>
+    <string name="host">Host</string>
+    <string name="hostname">Hostname</string>
+    <string name="username">Username</string>
+    <string name="url">URL</string>
+    <string name="email">e-mail</string>
+    <string name="phonenumber">Phone number</string>
+    <string name="pin">PIN</string>
+    <string name="website">Web site</string>
+    <string name="phone">Phone</string>
+    <string name="shell">Shell</string>
+    <string name="remotedesktop">Remote desktop</string>
+    <string name="vnc">VNC</string>
+    <string name="ftp">FTP</string>
+    <string name="database">Database</string>
+    <string name="description">Description</string>
+    <string name="notes">Notes</string>
+    <string name="port">Port</string>
+    <string name="code">Code</string>
+    <string name="location">Location</string>
+</resources>

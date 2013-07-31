@@ -50,13 +50,16 @@ public class Display {
     private static ListView lv;
     private static MainActivity activity;
 
+    /**
+     * Listener of the decrypted entries list
+     */
     private static AdapterView.OnItemClickListener entryItemClickListener =
-            new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView parent, View v, int position, long id) {
-                    showRevelationEntry(entries.get(position), activity);
-                }
-            };
+        new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                showRevelationEntry(entries.get(position), activity);
+            }
+        };
 
     private static AdapterView.OnItemLongClickListener entryLongClickListener =
         new AdapterView.OnItemLongClickListener() {
@@ -84,10 +87,13 @@ public class Display {
             }
         };
 
+    /**
+     * Listener of fields of an entry
+     */
     private static AdapterView.OnItemClickListener fieldItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            //To change body of implemented methods use File | Settings | File Templates.
+            //TODO Implement processing of field click
         }
     };
 
@@ -95,6 +101,7 @@ public class Display {
         new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
+                //TODO Implement processing of long field click
                 return true;
             }
     };
@@ -127,21 +134,21 @@ public class Display {
         lv.setOnItemLongClickListener(fieldLongClickListener);
         List<Map<String, String>> data = new ArrayList<Map<String, String>>();
         HashMap<String, String> values = new HashMap<String, String>();
-        values.put("First Line", "Name");
+        values.put("First Line", activity.getString(R.string.name));
         values.put("Second Line", entry.name);
         data.add(values);
         values = new HashMap<String, String>();
-        values.put("First Line", "Description");
+        values.put("First Line", activity.getString(R.string.description));
         values.put("Second Line", entry.description);
         data.add(values);
         for(String key : entry.fields.keySet()) {
             values = new HashMap<String, String>();
-            values.put("First Line", key);
+            values.put("First Line", Entry.getFieldName(key));
             values.put("Second Line", entry.fields.get(key));
             data.add(values);
         }
         values = new HashMap<String, String>();
-        values.put("First Line", "Notes");
+        values.put("First Line", activity.getString(R.string.notes));
         values.put("Second Line", entry.notes);
         data.add(values);
         values = new HashMap<String, String>();
@@ -245,8 +252,28 @@ public class Display {
             else
                 return "";
         }
-    }
 
+        static String getFieldName(String fieldname) {
+            if(fieldname.equals("generic-name"))
+                return activity.getString(R.string.name);
+            else if (fieldname.equals("generic-password"))
+                return activity.getString(R.string.password);
+            else if(fieldname.equals("generic-email"))
+                return activity.getString(R.string.email);
+            else if(fieldname.equals("generic-username"))
+                return activity.getString(R.string.username);
+            else if(fieldname.equals("generic-hostname"))
+                return activity.getString(R.string.hostname);
+            else if(fieldname.equals("generic-port"))
+                return activity.getString(R.string.port);
+            else if(fieldname.equals("generic-location"))
+                return activity.getString(R.string.location);
+            else {
+                //TODO implement logging (unknown fieldName)
+                return fieldname;
+            }
+        }
+    }
 
     static enum EntryType {
         creditcard,
@@ -291,8 +318,6 @@ public class Display {
         }
 
     }
-
-
 
     /**
      * Menu items of entry manipulating
