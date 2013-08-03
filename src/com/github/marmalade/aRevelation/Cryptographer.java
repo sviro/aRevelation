@@ -21,6 +21,13 @@ public class Cryptographer {
     final static byte[] MAGIC_STRING_DATA_VERSION_2 = new byte[] {'r', 'v', 'l', 0, 2, 0};
     final static byte[] VERSION_0_4_7 = new byte[] {0, 4, 7};
 
+    /**
+     * Main decpypt method
+     * @param file
+     * @param password
+     * @return
+     * @throws Exception
+     */
     public static String decrypt(File file, String password) throws Exception {
         byte[] header = new byte[74];
         new DataInputStream(new FileInputStream(file)).readFully(header);

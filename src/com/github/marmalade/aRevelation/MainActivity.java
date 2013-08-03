@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import javax.crypto.BadPaddingException;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,8 +136,16 @@ public class MainActivity extends Activity {
         try {
             String decryptedXML = Cryptographer.decrypt(file, password);
             Display.showRevelationEntries(decryptedXML, this);
+        } catch (BadPaddingException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Error")
+                    .setMessage("Invalid password");
+            builder.show();
         } catch (Exception e) {
-            throw new UnsupportedOperationException("No implementation of error processing.");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Error")
+                    .setMessage(e.getMessage());
+            builder.show();
         }
     }
 

@@ -253,24 +253,27 @@ public class Display {
                 return "";
         }
 
-        static String getFieldName(String fieldname) {
-            if(fieldname.equals("generic-name"))
-                return activity.getString(R.string.name);
-            else if (fieldname.equals("generic-password"))
-                return activity.getString(R.string.password);
-            else if(fieldname.equals("generic-email"))
-                return activity.getString(R.string.email);
-            else if(fieldname.equals("generic-username"))
-                return activity.getString(R.string.username);
-            else if(fieldname.equals("generic-hostname"))
-                return activity.getString(R.string.hostname);
-            else if(fieldname.equals("generic-port"))
-                return activity.getString(R.string.port);
-            else if(fieldname.equals("generic-location"))
-                return activity.getString(R.string.location);
-            else {
-                //TODO implement logging (unknown fieldName)
-                return fieldname;
+        static String getFieldName(String fieldName) {
+            switch (fieldName) {
+                case "generic-name"             : return activity.getString(R.string.name);
+                case "generic-password"         : return activity.getString(R.string.password);
+                case "generic-email"            : return activity.getString(R.string.email);
+                case "generic-username"         : return activity.getString(R.string.username);
+                case "generic-hostname"         : return activity.getString(R.string.hostname);
+                case "generic-port"             : return activity.getString(R.string.port);
+                case "generic-location"         : return activity.getString(R.string.location);
+                case "generic-pin"              : return activity.getString(R.string.pin);
+                case "generic-database"         : return activity.getString(R.string.database);
+                case "generic-url"              : return activity.getString(R.string.url);
+                case "generic-domain"           : return activity.getString(R.string.domain);
+                case "generic-code"             : return activity.getString(R.string.code);
+                case "creditcard-cardtype"      : return activity.getString(R.string.cardtype);
+                case "creditcard-ccv"           : return activity.getString(R.string.ccv);
+                case "creditcard-expirydate"    : return activity.getString(R.string.expirydate);
+                case "creditcard-cardnumber"    : return activity.getString(R.string.cardnumber);
+                case "phone-phonenumber"        : return activity.getString(R.string.phonenumber);
+
+                default                         : return fieldName;
             }
         }
     }

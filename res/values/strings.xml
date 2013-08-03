@@ -22,4 +22,9 @@
     <string name="port">Port</string>
     <string name="code">Code</string>
     <string name="location">Location</string>
+    <string name="cardtype">Card type</string>
+    <string name="expirydate">Expire date</string>
+    <string name="cardnumber">Card number</string>
+    <string name="domain">Domain</string>
+    <string name="ccv">CCV</string>
 </resources>
