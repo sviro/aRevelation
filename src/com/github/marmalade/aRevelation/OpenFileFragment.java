@@ -53,7 +53,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public void onStop() {
-        super.onStop();    //To change body of overridden methods use File | Settings | File Templates.
+        super.onStop();
     }
 
     public OpenFileFragment() {
@@ -65,6 +65,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     private void setLocation(FileWrapper path) {
+        this.path = path.getFile().getAbsolutePath();
         filesBrowserItems.clear();
         if(path.getFile().getParent() != null)
             filesBrowserItems.add(new FileWrapper(path.getFile().getParentFile(), "..."));
