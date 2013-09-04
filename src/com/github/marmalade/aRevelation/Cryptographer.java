@@ -1,11 +1,14 @@
 package com.github.marmalade.aRevelation;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.security.*;
+import java.security.Key;
+import java.security.MessageDigest;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;

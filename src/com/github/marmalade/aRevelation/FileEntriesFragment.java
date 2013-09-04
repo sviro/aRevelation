@@ -1,12 +1,14 @@
 package com.github.marmalade.aRevelation;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
+import android.app.*;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -26,10 +28,10 @@ import java.util.Map;
 
 /**
  * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
- * Date: 7/7/13
- * Time: 11:46 AM
+ * Date: 8/31/13
+ * Time: 8:54 PM
  */
-public class Display {
+public class FileEntriesFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     final static String ENTRY_NODE_NAME = "entry";
     final static String TYPE_ATTRIBUTE = "type";
@@ -40,98 +42,41 @@ public class Display {
     final static String FIELD_ATTRIBUTE = "field";
     final static String ID_ATTRIBUTE = "id";
 
-    static String decryptedXml;
+    private String decryptedXML;
+    private static ListView lv;
     private static List<Entry> entries;
     private static ArrayAdapter<Entry> entryArrayAdapter;
-
-    private static List<Object> fields;
-    private static ArrayAdapter<Object> fieldArrayAdapter;
-
-    private static ListView lv;
-    private static MainActivity activity;
-
-    /**
-     * Listener of the decrypted entries list
-     */
-    private static AdapterView.OnItemClickListener entryItemClickListener =
-        new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView parent, View v, int position, long id) {
-                showRevelationEntry(entries.get(position), activity);
-            }
-        };
-
-    private static AdapterView.OnItemLongClickListener entryLongClickListener =
-        new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
-                final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
-                ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<ActionsMenuItems>(activity,
-                        android.R.layout.simple_list_item_1, menuItems);
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                final CharSequence[] items= ActionsMenuItems.getCharSequences();
-                builder.setItems(items,new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
-                            ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-                            ClipData clip = ClipData.newPlainText("pass",entries.get(i).getSecretFieldData());
-                            clipboard.setPrimaryClip(clip);
-                        }
-                    }
-                });
-
-                Dialog d = builder.create();
-                d.show();
-                return false;
-            }
-        };
-
-    /**
-     * Listener of fields of an entry
-     */
-    private static AdapterView.OnItemClickListener fieldItemClickListener = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            //TODO Implement processing of field click
-        }
-    };
-
-    private static AdapterView.OnItemLongClickListener fieldLongClickListener =
-        new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int i, long l) {
-                //TODO Implement processing of long field click
-                return true;
-            }
-    };
+    private Activity activity;
 
 
+    public FileEntriesFragment(String decryptedXML) {
+        this.decryptedXML = decryptedXML;
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        this.activity = getActivity();
+        return inflater.inflate(R.layout.decrypted_file_layout, container, false);
+    }
 
-    static void showRevelationEntries(String decryptedXML, MainActivity activity)   {
+    @Override
+    public void onStart() {
+        lv = (ListView)activity.findViewById(R.id.itemsListView);
+        lv.setOnItemClickListener(this);
+        lv.setOnItemLongClickListener(this);
         try {
-            Display.decryptedXml = decryptedXML;
-            Display.activity = activity;
-            activity.setContentView(R.layout.decrypted_file_layout);
-            activity.status = MainActivity.MenuStatus.DecryptedEntriesDisplay;
-            lv = (ListView)activity.findViewById(R.id.itemsListView);
-            lv.setOnItemClickListener(entryItemClickListener);
-            lv.setOnItemLongClickListener(entryLongClickListener);
             entries = Entry.parseDecryptedXml(decryptedXML);
             entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
             lv.setAdapter(entryArrayAdapter);
             entryArrayAdapter.notifyDataSetChanged();
-
         } catch (Exception e) {
+            //TODO Process error
             e.printStackTrace();
         }
+        super.onStart();
     }
 
     private static void showRevelationEntry(Entry entry, MainActivity activity) {
-        activity.status = MainActivity.MenuStatus.EntryDisplay;
-        lv.setOnItemClickListener(fieldItemClickListener);
-        lv.setOnItemLongClickListener(fieldLongClickListener);
         List<Map<String, String>> data = new ArrayList<Map<String, String>>();
         HashMap<String, String> values = new HashMap<String, String>();
         values.put("First Line", activity.getString(R.string.name));
@@ -143,7 +88,7 @@ public class Display {
         data.add(values);
         for(String key : entry.fields.keySet()) {
             values = new HashMap<String, String>();
-            values.put("First Line", Entry.getFieldName(key));
+            values.put("First Line", Entry.getFieldName(key, activity));
             values.put("Second Line", entry.fields.get(key));
             data.add(values);
         }
@@ -164,14 +109,48 @@ public class Display {
         adapter.notifyDataSetChanged();
     }
 
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.mainLinearLayout, new EntryFragment(entries.get(position)))
+                .addToBackStack(null)
+                .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                .commit();
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+        final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
+        ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<ActionsMenuItems>(activity,
+                android.R.layout.simple_list_item_1, menuItems);
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        final CharSequence[] items= ActionsMenuItems.getCharSequences();
+        builder.setItems(items,new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
+                    ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("pass",entries.get(position).getSecretFieldData());
+                    clipboard.setPrimaryClip(clip);
+                }
+            }
+        });
+
+        Dialog d = builder.create();
+        d.show();
+        return false;
+    }
+
 
     public static class Entry {
 
-        private String name, description, updated, notes;
-        private HashMap<String, String> fields;
+        public String name, description, updated, notes;
+        public HashMap<String, String> fields;
         EntryType type;
 
-        private Entry(String name, String description, String updated, String notes, HashMap<String, String> fields, String type) throws Exception {
+        private Entry(String name, String description,
+                      String updated, String notes,
+                      HashMap<String, String> fields, String type) throws Exception {
             this.name = name;
             this.description = description;
             this.updated = updated;
@@ -221,7 +200,7 @@ public class Display {
                     if(fieldName != null)
                         attr.put(fieldName, value);
                 } else
-                        ;//throw new Exception("Unknown node type - " + nameL.item(i).getNodeName());
+                    ;//throw new Exception("Unknown node type - " + nameL.item(i).getNodeName());
             }
             return new Entry(name, descr, updated, notes, attr, type);
         }
@@ -240,20 +219,20 @@ public class Display {
                 return fields.get("generic-pin");
             else if (
                     type == EntryType.database
-                 || type == EntryType.cryptokey
-                 || type == EntryType.email
-                 || type == EntryType.generic
-                 || type == EntryType.ftp
-                 || type == EntryType.remotedesktop
-                 || type == EntryType.shell
-                 || type == EntryType.vnc
-                 || type == EntryType.website)
-            return fields.get("generic-password");
+                            || type == EntryType.cryptokey
+                            || type == EntryType.email
+                            || type == EntryType.generic
+                            || type == EntryType.ftp
+                            || type == EntryType.remotedesktop
+                            || type == EntryType.shell
+                            || type == EntryType.vnc
+                            || type == EntryType.website)
+                return fields.get("generic-password");
             else
                 return "";
         }
 
-        static String getFieldName(String fieldName) {
+        static String getFieldName(String fieldName, Activity activity) {
             switch (fieldName) {
                 case "generic-name"             : return activity.getString(R.string.name);
                 case "generic-password"         : return activity.getString(R.string.password);
