@@ -29,7 +29,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     private static final String DEFAULT_PATH="/";
 
     // Current path of a showed menu
-    private String path;
+    private static String path;
 
     private ListView lv;
     private ArrayList<FileWrapper> filesBrowserItems = new ArrayList<FileWrapper>();
@@ -56,12 +56,20 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         super.onStop();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
     public OpenFileFragment() {
-        this(DEFAULT_PATH);
+        this(path);
     }
 
     public OpenFileFragment(String path) {
-        this.path = path;
+        if(path == null)
+            this.path = DEFAULT_PATH;
+        else
+            this.path = path;
     }
 
     private void setLocation(FileWrapper path) {
@@ -74,6 +82,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         for(File childFile : sortedChildren)
             filesBrowserItems.add(new FileWrapper(childFile));
         filesBrowserAdapter.notifyDataSetChanged();
+        lv.setSelection(0);         // Go to the top
     }
 
     private void openFile(final File file) {
