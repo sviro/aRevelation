@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import javax.crypto.BadPaddingException;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,8 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
 
     private static final String DEFAULT_PATH="/";
 
+	private static final String PATH = "path";
+
     // Current path of a showed menu
     private String path;
 
@@ -38,6 +41,18 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.open_file_layout, container, false);
+    }
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+    	super.onCreate(savedInstanceState);
+    	
+    	path = DEFAULT_PATH;
+    	
+    	Bundle arguments = getArguments();
+    	if (arguments != null) {
+			path = arguments.getString(PATH);
+		}
     }
 
     @Override
@@ -55,13 +70,15 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     public void onStop() {
         super.onStop();
     }
-
-    public OpenFileFragment() {
-        this(DEFAULT_PATH);
-    }
-
-    public OpenFileFragment(String path) {
-        this.path = path;
+    
+    public static OpenFileFragment newInstance(String path) {
+    	OpenFileFragment fragment = new OpenFileFragment();
+    	
+    	Bundle bundle = new Bundle();
+    	bundle.putString(PATH, path);
+    	fragment.setArguments(bundle);
+    	
+    	return fragment;
     }
 
     private void setLocation(FileWrapper path) {
@@ -129,7 +146,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         try {
             String decryptedXML = Cryptographer.decrypt(file, password);
             FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.mainLinearLayout, new FileEntriesFragment(decryptedXML))
+            fragmentTransaction.replace(R.id.mainLinearLayout, FileEntriesFragment.newInstance(decryptedXML))
                     .addToBackStack(null)
                     .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                     .commit();

@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,6 +21,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,17 +43,35 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
     final static String NOTES_ATTRIBUTE = "notes";
     final static String FIELD_ATTRIBUTE = "field";
     final static String ID_ATTRIBUTE = "id";
+	private static final String DECRYPTED_XML = "decrypted_xml";
 
     private String decryptedXML;
     private static ListView lv;
     private static List<Entry> entries;
     private static ArrayAdapter<Entry> entryArrayAdapter;
     private Activity activity;
+    
 
-
-    public FileEntriesFragment(String decryptedXML) {
-        this.decryptedXML = decryptedXML;
+    public static FileEntriesFragment newInstance(String decryptedXML) {
+    	FileEntriesFragment fragment = new FileEntriesFragment();
+    	
+    	Bundle bundle = new Bundle();
+    	bundle.putString(DECRYPTED_XML, decryptedXML);
+    	fragment.setArguments(bundle);
+    	
+    	return fragment;
     }
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+    	super.onCreate(savedInstanceState);
+    	
+    	Bundle arguments = getArguments();
+    	if (arguments != null) {
+			decryptedXML = arguments.getString(DECRYPTED_XML);
+		}
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -233,27 +253,59 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         }
 
         static String getFieldName(String fieldName, Activity activity) {
-            switch (fieldName) {
-                case "generic-name"             : return activity.getString(R.string.name);
-                case "generic-password"         : return activity.getString(R.string.password);
-                case "generic-email"            : return activity.getString(R.string.email);
-                case "generic-username"         : return activity.getString(R.string.username);
-                case "generic-hostname"         : return activity.getString(R.string.hostname);
-                case "generic-port"             : return activity.getString(R.string.port);
-                case "generic-location"         : return activity.getString(R.string.location);
-                case "generic-pin"              : return activity.getString(R.string.pin);
-                case "generic-database"         : return activity.getString(R.string.database);
-                case "generic-url"              : return activity.getString(R.string.url);
-                case "generic-domain"           : return activity.getString(R.string.domain);
-                case "generic-code"             : return activity.getString(R.string.code);
-                case "creditcard-cardtype"      : return activity.getString(R.string.cardtype);
-                case "creditcard-ccv"           : return activity.getString(R.string.ccv);
-                case "creditcard-expirydate"    : return activity.getString(R.string.expirydate);
-                case "creditcard-cardnumber"    : return activity.getString(R.string.cardnumber);
-                case "phone-phonenumber"        : return activity.getString(R.string.phonenumber);
-
-                default                         : return fieldName;
-            }
+        	if ("generic-name".equals(fieldName)) {
+        		return activity.getString(R.string.name);
+			}
+        	if ("generic-password".equals(fieldName)) {
+        		return activity.getString(R.string.password);
+        	}
+        	if ("generic-email".equals(fieldName)) {
+        		return activity.getString(R.string.email);
+        	}
+        	if ("generic-username".equals(fieldName)) {
+        		return activity.getString(R.string.username);
+        	}
+        	if ("generic-hostname".equals(fieldName)) {
+        		return activity.getString(R.string.hostname);
+        	}
+        	if ("generic-port".equals(fieldName)) {
+        		return activity.getString(R.string.port);
+        	}
+        	if ("generic-location".equals(fieldName)) {
+        		return activity.getString(R.string.location);
+        	}
+        	if ("generic-pin".equals(fieldName)) {
+        		return activity.getString(R.string.pin);
+        	}
+        	if ("generic-database".equals(fieldName)) {
+        		return activity.getString(R.string.database);
+        	}
+        	if ("generic-url".equals(fieldName)) {
+        		return activity.getString(R.string.url);
+        	}
+        	if ("generic-domain".equals(fieldName)) {
+        		return activity.getString(R.string.domain);
+        	}
+        	if ("generic-code".equals(fieldName)) {
+        		return activity.getString(R.string.code);
+        	}
+        	if ("creditcard-cardtype".equals(fieldName)) {
+        		return activity.getString(R.string.cardtype);
+        	}
+        	if ("creditcard-ccv".equals(fieldName)) {
+        		return activity.getString(R.string.ccv);
+        	}
+        	if ("creditcard-expirydate".equals(fieldName)) {
+        		return activity.getString(R.string.expirydate);
+        	}
+        	if ("creditcard-cardnumber".equals(fieldName)) {
+        		return activity.getString(R.string.cardnumber);
+        	}
+        	if ("phone-phonenumber".equals(fieldName)) {
+        		return activity.getString(R.string.phonenumber);
+        	}
+        	
+        	return fieldName;
         }
     }
 
