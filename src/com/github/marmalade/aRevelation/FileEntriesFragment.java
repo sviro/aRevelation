@@ -130,7 +130,7 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
             public void onClick(DialogInterface dialog, int which) {
                 if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
                     ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("pass",entries.get(position).getSecretFieldData());
+                    ClipData clip = ClipData.newPlainText("pass", entries.get(position).getSecretFieldData());
                     clipboard.setPrimaryClip(clip);
                 }
             }
@@ -233,27 +233,24 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         }
 
         static String getFieldName(String fieldName, Activity activity) {
-            switch (fieldName) {
-                case "generic-name"             : return activity.getString(R.string.name);
-                case "generic-password"         : return activity.getString(R.string.password);
-                case "generic-email"            : return activity.getString(R.string.email);
-                case "generic-username"         : return activity.getString(R.string.username);
-                case "generic-hostname"         : return activity.getString(R.string.hostname);
-                case "generic-port"             : return activity.getString(R.string.port);
-                case "generic-location"         : return activity.getString(R.string.location);
-                case "generic-pin"              : return activity.getString(R.string.pin);
-                case "generic-database"         : return activity.getString(R.string.database);
-                case "generic-url"              : return activity.getString(R.string.url);
-                case "generic-domain"           : return activity.getString(R.string.domain);
-                case "generic-code"             : return activity.getString(R.string.code);
-                case "creditcard-cardtype"      : return activity.getString(R.string.cardtype);
-                case "creditcard-ccv"           : return activity.getString(R.string.ccv);
-                case "creditcard-expirydate"    : return activity.getString(R.string.expirydate);
-                case "creditcard-cardnumber"    : return activity.getString(R.string.cardnumber);
-                case "phone-phonenumber"        : return activity.getString(R.string.phonenumber);
-
-                default                         : return fieldName;
-            }
+            if (fieldName.equals("generic-name")) return activity.getString(R.string.name);
+            else if (fieldName.equals("generic-password")) return activity.getString(R.string.password);
+            else if (fieldName.equals("generic-email")) return activity.getString(R.string.email);
+            else if (fieldName.equals("generic-username")) return activity.getString(R.string.username);
+            else if (fieldName.equals("generic-hostname")) return activity.getString(R.string.hostname);
+            else if (fieldName.equals("generic-port")) return activity.getString(R.string.port);
+            else if (fieldName.equals("generic-location")) return activity.getString(R.string.location);
+            else if (fieldName.equals("generic-pin")) return activity.getString(R.string.pin);
+            else if (fieldName.equals("generic-database")) return activity.getString(R.string.database);
+            else if (fieldName.equals("generic-url")) return activity.getString(R.string.url);
+            else if (fieldName.equals("generic-domain")) return activity.getString(R.string.domain);
+            else if (fieldName.equals("generic-code")) return activity.getString(R.string.code);
+            else if (fieldName.equals("creditcard-cardtype")) return activity.getString(R.string.cardtype);
+            else if (fieldName.equals("creditcard-ccv")) return activity.getString(R.string.ccv);
+            else if (fieldName.equals("creditcard-expirydate")) return activity.getString(R.string.expirydate);
+            else if (fieldName.equals("creditcard-cardnumber")) return activity.getString(R.string.cardnumber);
+            else if (fieldName.equals("phone-phonenumber")) return activity.getString(R.string.phonenumber);
+            else return fieldName;
         }
     }
 
