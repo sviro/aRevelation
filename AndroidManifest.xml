@@ -6,6 +6,7 @@
         android:versionCode="1"
         android:versionName="0.01"
         android:installLocation="auto">
+    <uses-sdk android:minSdkVersion="11"/>
     <application
             android:icon="@drawable/icon"
             android:label="aRevelation">
