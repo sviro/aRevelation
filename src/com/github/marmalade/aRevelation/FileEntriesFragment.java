@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -24,7 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
@@ -42,12 +40,16 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
     final static String FIELD_ATTRIBUTE = "field";
     final static String ID_ATTRIBUTE = "id";
 
-    private String decryptedXML;
-    private static ListView lv;
-    private static List<Entry> entries;
-    private static ArrayAdapter<Entry> entryArrayAdapter;
+    private static String decryptedXML;
+    private ListView lv;
+    private List<Entry> entries;
+    private ArrayAdapter<Entry> entryArrayAdapter;
     private Activity activity;
 
+
+    public FileEntriesFragment() {
+
+    }
 
     public FileEntriesFragment(String decryptedXML) {
         this.decryptedXML = decryptedXML;
@@ -74,39 +76,6 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
             e.printStackTrace();
         }
         super.onStart();
-    }
-
-    private static void showRevelationEntry(Entry entry, MainActivity activity) {
-        List<Map<String, String>> data = new ArrayList<Map<String, String>>();
-        HashMap<String, String> values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.name));
-        values.put("Second Line", entry.name);
-        data.add(values);
-        values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.description));
-        values.put("Second Line", entry.description);
-        data.add(values);
-        for(String key : entry.fields.keySet()) {
-            values = new HashMap<String, String>();
-            values.put("First Line", Entry.getFieldName(key, activity));
-            values.put("Second Line", entry.fields.get(key));
-            data.add(values);
-        }
-        values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.notes));
-        values.put("Second Line", entry.notes);
-        data.add(values);
-        values = new HashMap<String, String>();
-        values.put("First Line", "Updated");
-        values.put("Second Line", entry.updated);
-        data.add(values);
-
-        SimpleAdapter adapter = new SimpleAdapter(activity, data,
-                android.R.layout.simple_list_item_2,
-                new String[] {"First Line", "Second Line" },
-                new int[] {android.R.id.text1, android.R.id.text2 });
-        lv.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
     }
 
     @Override
