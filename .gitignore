@@ -1,2 +1,21 @@
+# Eclipse
+.project
+.classpath
+.settings
+
+# IntelliJ IDEA
+.idea
+*.iml
+*.ipr
+*.iws
+classes
+
+# Gradle
+.gradle
+build
+
+
+# Ant
 /bin
 /gen
+local.properties
