@@ -42,6 +42,8 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
 
     private static String decryptedXML;
     private ListView lv;
+    private int savedScrollBarPosition;
+    private int top;
     private List<Entry> entries;
     private ArrayAdapter<Entry> entryArrayAdapter;
     private Activity activity;
@@ -55,11 +57,22 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         this.decryptedXML = decryptedXML;
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.activity = getActivity();
         return inflater.inflate(R.layout.decrypted_file_layout, container, false);
     }
+
+
+    @Override
+    public void onPause() {
+        // Save previous position
+        savedScrollBarPosition = lv.getFirstVisiblePosition();
+        top = (lv.getChildAt(0) == null) ? 0 : lv.getChildAt(0).getTop();
+        super.onPause();
+    }
+
 
     @Override
     public void onStart() {
@@ -76,7 +89,10 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
             e.printStackTrace();
         }
         super.onStart();
+        // Set previous position
+        lv.setSelectionFromTop(savedScrollBarPosition, top);
     }
+
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
