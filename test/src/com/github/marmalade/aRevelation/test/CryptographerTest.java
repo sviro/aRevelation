@@ -6,8 +6,8 @@ import com.github.marmalade.aRevelation.FileEntriesFragment;
 import junit.framework.TestCase;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
+import java.util.Arrays;
 
 /**
  * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
@@ -16,11 +16,15 @@ import java.io.FileInputStream;
  */
 public class CryptographerTest extends TestCase {
 
+    private static final String DECRYPTED_DATA_FILE_4_14 = "test/res/rvl_test-0.4.14.xml";
+    private static final String ENCRYPTED_DATA_FILE_4_14 = "test/res/rvl_test-0.4.14";
+
+
     @Test
-    public void testEncrypt() {
+    public void testDecrypt() {
         try {
-            File file = new File("test/res/rvl_test-0.4.14");
-            FileInputStream input = new FileInputStream("test/res/rvl_test-0.4.14.xml");
+            File file = new File(ENCRYPTED_DATA_FILE_4_14);
+            FileInputStream input = new FileInputStream(DECRYPTED_DATA_FILE_4_14);
             byte[] fileData = new byte[input.available()];
             input.read(fileData);
             input.close();
@@ -36,7 +40,7 @@ public class CryptographerTest extends TestCase {
     @Test
     public void testParsing() {
         try {
-            FileInputStream input = new FileInputStream("test/res/rvl_test-0.4.14.xml");
+            FileInputStream input = new FileInputStream(DECRYPTED_DATA_FILE_4_14);
             byte[] fileData = new byte[input.available()];
             input.read(fileData);
             input.close();
@@ -48,4 +52,37 @@ public class CryptographerTest extends TestCase {
         }
     }
 
+    @Test
+    public void testEncrypt() {
+        try {
+            // Get decrypted data
+            String xml = readFileAsString(DECRYPTED_DATA_FILE_4_14);
+
+            // Get encrypted data
+            FileInputStream input = new FileInputStream(DECRYPTED_DATA_FILE_4_14);
+            byte[] er = new byte[input.available()];
+            input.read(er);
+            input.close();
+
+            byte[] ar = Cryptographer.encrypt(xml, "test");
+            assertTrue(Arrays.equals(ar, er));
+
+        } catch (Exception e) {
+            assert(false);
+        }
+    }
+
+    private String readFileAsString(String filePath) throws IOException {
+        StringBuffer fileData = new StringBuffer();
+        BufferedReader reader = new BufferedReader(
+                new FileReader(filePath));
+        char[] buf = new char[1024];
+        int numRead=0;
+        while((numRead=reader.read(buf)) != -1){
+            String readData = String.valueOf(buf, 0, numRead);
+            fileData.append(readData);
+        }
+        reader.close();
+        return fileData.toString();
+    }
 }
