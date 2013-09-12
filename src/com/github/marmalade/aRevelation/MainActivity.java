@@ -12,14 +12,17 @@ import android.os.Bundle;
  */
 public class MainActivity extends Activity {
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        MainMenuFragment mmf = new MainMenuFragment();
-        fragmentTransaction.add(R.id.mainLinearLayout, mmf);
-        fragmentTransaction.commit();
+        if(savedInstanceState == null) {
+            FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.add(R.id.mainLinearLayout, new MainMenuFragment());
+            fragmentTransaction.commit();
+        }
     }
 
     @Override

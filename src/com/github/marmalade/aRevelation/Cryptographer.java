@@ -69,6 +69,10 @@ public class Cryptographer {
         throw new Exception("Unknown file format");
     }
 
+    public static byte[] encrypt(String xmlData, String password) throws UnsupportedEncodingException {
+        throw new UnsupportedEncodingException("This method isn't implemented yet");
+    }
+
     private static String bytArrayToHex(byte[] a) {
         StringBuilder sb = new StringBuilder();
         for(byte b: a)

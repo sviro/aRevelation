@@ -24,7 +24,18 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
 
     private static ListView lv;
     private Activity activity;
-    private FileEntriesFragment.Entry entry;
+    private static FileEntriesFragment.Entry entry;
+
+
+
+    public EntryFragment() {
+
+    }
+
+
+    EntryFragment(FileEntriesFragment.Entry entry) {
+        this.entry = entry;
+    }
 
 
     @Override
@@ -32,11 +43,13 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
         return inflater.inflate(R.layout.entry_layout, container, false);
     }
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         activity = getActivity();
         super.onCreate(savedInstanceState);
     }
+
 
     @Override
     public void onStart() {
@@ -45,9 +58,6 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
         super.onStart();
     }
 
-    EntryFragment(FileEntriesFragment.Entry entry) {
-        this.entry = entry;
-    }
 
     private void showRevelationEntry(FileEntriesFragment.Entry entry, Activity activity) {
         lv.setOnItemClickListener(this);
@@ -90,9 +100,11 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
         //TODO Implement behaviour
     }
 
+
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         //TODO Implement behaviour
         return false;
     }
+
 }

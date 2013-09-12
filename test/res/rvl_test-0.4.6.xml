@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<revelationdata version="0.4.14" dataversion="1">
+
+	<entry type="creditcard">
+		<name>CreditCard Example</name>
+		<description>Example description</description>
+		<updated>1373526156</updated>
+		<notes>Example notes</notes>
+		<field id="creditcard-cardtype">VISA</field>
+		<field id="creditcard-cardnumber">1234-5678-8901-2345</field>
+		<field id="creditcard-expirydate">12/13</field>
+		<field id="creditcard-ccv">356</field>
+		<field id="generic-pin">0000</field>
+	</entry>
+
+	<entry type="cryptokey">
+		<name>Crypto KeyEntry</name>
+		<description>Desc</description>
+		<updated>1374331906</updated>
+		<notes>Note</notes>
+		<field id="generic-hostname">Host</field>
+		<field id="generic-certificate">/home/user/domain.csr</field>
+		<field id="generic-keyfile">/home/user/domain.key</field>
+		<field id="generic-password">t,B2]XUa</field>
+	</entry>
+
+	<entry type="door">
+		<name>Door</name>
+		<description>just door</description>
+		<updated>1373526745</updated>
+		<notes>Note 1,
+Note 2,
+Note 3.</notes>
+		<field id="generic-location">Anywhere</field>
+		<field id="generic-code">1234</field>
+	</entry>
+
+	<entry type="database">
+		<name>Example database</name>
+		<description>test description</description>
+		<updated>1373526683</updated>
+		<notes>Some notes</notes>
+		<field id="generic-hostname">domain.name.com</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">Mby2HZw"</field>
+		<field id="generic-database">mydatabase</field>
+	</entry>
+
+	<entry type="email">
+		<name>Example email</name>
+		<description>simple email</description>
+		<updated>1373527046</updated>
+		<notes>Note, note, note</notes>
+		<field id="generic-email">test@github.org</field>
+		<field id="generic-hostname">mail.github.org</field>
+		<field id="generic-username">test</field>
+		<field id="generic-password">e]7UB+Fw</field>
+	</entry>
+
+	<entry type="ftp">
+		<name>Example FTP</name>
+		<description>Description</description>
+		<updated>1373527355</updated>
+		<notes>Note</notes>
+		<field id="generic-hostname">ftp.google.com</field>
+		<field id="generic-port">1234</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">xwQ?8%Vb</field>
+	</entry>
+
+	<entry type="remotedesktop">
+		<name>Example remote desktop</name>
+		<description>Description</description>
+		<updated>1373527964</updated>
+		<notes>%%%%%%</notes>
+		<field id="generic-hostname">localhost</field>
+		<field id="generic-port">3241</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">G+u4Fkn!</field>
+	</entry>
+
+	<entry type="shell">
+		<name>Example shell</name>
+		<description>descr</description>
+		<updated>1373527913</updated>
+		<notes>,,..//??@@""''!!</notes>
+		<field id="generic-hostname">localhost</field>
+		<field id="generic-domain">mydomain.com</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">Gp%!^9nL</field>
+	</entry>
+
+	<entry type="vnc">
+		<name>Example VNC</name>
+		<description>Description</description>
+		<updated>1373528008</updated>
+		<notes>Test</notes>
+		<field id="generic-hostname">localhost</field>
+		<field id="generic-port">3322</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">8#Jcb[V$</field>
+	</entry>
+
+	<entry type="generic">
+		<name>Generic example</name>
+		<description>Description</description>
+		<updated>1374331227</updated>
+		<notes>note</notes>
+		<field id="generic-hostname">Host</field>
+		<field id="generic-username">user</field>
+		<field id="generic-password">KT7W8y|p</field>
+	</entry>
+
+	<entry type="website">
+		<name>google.com</name>
+		<description>Description</description>
+		<updated>1373528046</updated>
+		<notes>note</notes>
+		<field id="generic-url">www.google.com</field>
+		<field id="generic-username">user</field>
+		<field id="generic-email">user@google.com</field>
+		<field id="generic-password">_Gd!EYy4</field>
+	</entry>
+
+	<entry type="phone">
+		<name>test</name>
+		<description>test desc</description>
+		<updated>1372121073</updated>
+		<notes>test note</notes>
+		<field id="phone-phonenumber">+7555-985-43-23</field>
+		<field id="generic-pin">2134</field>
+	</entry>
+</revelationdata>

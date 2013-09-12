@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -26,7 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Author: <a href="mailto:alexey.kislin@gmail.com">Alexey Kislin</a>
@@ -45,10 +43,12 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
     final static String ID_ATTRIBUTE = "id";
 	private static final String DECRYPTED_XML = "decrypted_xml";
 
-    private String decryptedXML;
-    private static ListView lv;
-    private static List<Entry> entries;
-    private static ArrayAdapter<Entry> entryArrayAdapter;
+    private static String decryptedXML;
+    private ListView lv;
+    private int savedScrollBarPosition;
+    private int top;
+    private List<Entry> entries;
+    private ArrayAdapter<Entry> entryArrayAdapter;
     private Activity activity;
     
 
@@ -68,8 +68,9 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
     	
     	Bundle arguments = getArguments();
     	if (arguments != null) {
-			decryptedXML = arguments.getString(DECRYPTED_XML);
-		}
+		decryptedXML = arguments.getString(DECRYPTED_XML);
+	}
+
     }
 
 
@@ -78,6 +79,16 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         this.activity = getActivity();
         return inflater.inflate(R.layout.decrypted_file_layout, container, false);
     }
+
+
+    @Override
+    public void onPause() {
+        // Save previous position
+        savedScrollBarPosition = lv.getFirstVisiblePosition();
+        top = (lv.getChildAt(0) == null) ? 0 : lv.getChildAt(0).getTop();
+        super.onPause();
+    }
+
 
     @Override
     public void onStart() {
@@ -94,40 +105,10 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
             e.printStackTrace();
         }
         super.onStart();
+        // Set previous position
+        lv.setSelectionFromTop(savedScrollBarPosition, top);
     }
 
-    private static void showRevelationEntry(Entry entry, MainActivity activity) {
-        List<Map<String, String>> data = new ArrayList<Map<String, String>>();
-        HashMap<String, String> values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.name));
-        values.put("Second Line", entry.name);
-        data.add(values);
-        values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.description));
-        values.put("Second Line", entry.description);
-        data.add(values);
-        for(String key : entry.fields.keySet()) {
-            values = new HashMap<String, String>();
-            values.put("First Line", Entry.getFieldName(key, activity));
-            values.put("Second Line", entry.fields.get(key));
-            data.add(values);
-        }
-        values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.notes));
-        values.put("Second Line", entry.notes);
-        data.add(values);
-        values = new HashMap<String, String>();
-        values.put("First Line", "Updated");
-        values.put("Second Line", entry.updated);
-        data.add(values);
-
-        SimpleAdapter adapter = new SimpleAdapter(activity, data,
-                android.R.layout.simple_list_item_2,
-                new String[] {"First Line", "Second Line" },
-                new int[] {android.R.id.text1, android.R.id.text2 });
-        lv.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
-    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -150,7 +131,7 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
             public void onClick(DialogInterface dialog, int which) {
                 if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
                     ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("pass",entries.get(position).getSecretFieldData());
+                    ClipData clip = ClipData.newPlainText("pass", entries.get(position).getSecretFieldData());
                     clipboard.setPrimaryClip(clip);
                 }
             }

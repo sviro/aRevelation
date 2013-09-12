@@ -32,7 +32,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
 	private static final String PATH = "path";
 
     // Current path of a showed menu
-    private String path;
+    private static String path;
 
     private ListView lv;
     private ArrayList<FileWrapper> filesBrowserItems = new ArrayList<FileWrapper>();
@@ -47,12 +47,14 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	
-    	path = DEFAULT_PATH;
-    	
     	Bundle arguments = getArguments();
     	if (arguments != null) {
-			path = arguments.getString(PATH);
-		}
+	        path = arguments.getString(PATH);
+	}
+
+        if (path == null) {
+    	        path = DEFAULT_PATH;        
+        }
     }
 
     @Override
@@ -70,6 +72,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     public void onStop() {
         super.onStop();
     }
+
     
     public static OpenFileFragment newInstance(String path) {
     	OpenFileFragment fragment = new OpenFileFragment();
@@ -81,6 +84,12 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     	return fragment;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+
     private void setLocation(FileWrapper path) {
         this.path = path.getFile().getAbsolutePath();
         filesBrowserItems.clear();
@@ -91,6 +100,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         for(File childFile : sortedChildren)
             filesBrowserItems.add(new FileWrapper(childFile));
         filesBrowserAdapter.notifyDataSetChanged();
+        lv.setSelection(0);         // Go to the top
     }
 
     private void openFile(final File file) {
