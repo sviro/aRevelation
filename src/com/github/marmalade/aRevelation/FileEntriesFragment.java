@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ListView;
 
 import org.w3c.dom.Document;
@@ -23,6 +24,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -31,17 +34,19 @@ import java.util.List;
  * Date: 8/31/13
  * Time: 8:54 PM
  */
-public class FileEntriesFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+public class FileEntriesFragment extends Fragment implements
+        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, IBackPressedListener {
 
-    final static String ENTRY_NODE_NAME = "entry";
-    final static String TYPE_ATTRIBUTE = "type";
-    final static String NAME_ATTRIBUTE = "name";
-    final static String DESCRIPTION_ATTRIBUTE = "description";
-    final static String UPDATED_ATTRIBUTE = "updated";
-    final static String NOTES_ATTRIBUTE = "notes";
-    final static String FIELD_ATTRIBUTE = "field";
-    final static String ID_ATTRIBUTE = "id";
-	private static final String DECRYPTED_XML = "decrypted_xml";
+    final static String REVELATION_XML_NODE_NAME    = "revelationdata";
+    final static String ENTRY_NODE_NAME             = "entry";
+    final static String TYPE_ATTRIBUTE              = "type";
+    final static String NAME_ATTRIBUTE              = "name";
+    final static String DESCRIPTION_ATTRIBUTE       = "description";
+    final static String UPDATED_ATTRIBUTE           = "updated";
+    final static String NOTES_ATTRIBUTE             = "notes";
+    final static String FIELD_ATTRIBUTE             = "field";
+    final static String ID_ATTRIBUTE                = "id";
+	private static final String DECRYPTED_XML       = "decrypted_xml";
 
     private static String decryptedXML;
     private ListView lv;
@@ -50,6 +55,7 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
     private List<Entry> entries;
     private ArrayAdapter<Entry> entryArrayAdapter;
     private Activity activity;
+    //private Entry currentElement = null;
     
 
     public static FileEntriesFragment newInstance(String decryptedXML) {
@@ -96,7 +102,9 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         lv.setOnItemClickListener(this);
         lv.setOnItemLongClickListener(this);
         try {
-            entries = Entry.parseDecryptedXml(decryptedXML);
+            if(entries == null)
+                entries = Entry.parseDecryptedXml(decryptedXML, entries);
+
             entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
             lv.setAdapter(entryArrayAdapter);
             entryArrayAdapter.notifyDataSetChanged();
@@ -112,11 +120,34 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.mainLinearLayout, new EntryFragment(entries.get(position)))
-                .addToBackStack(null)
-                .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
-                .commit();
+        // I really don't like this. I will make it a little bit more beautiful after.
+
+        Entry selectedEntry = entryArrayAdapter.getItem(position);
+        if(selectedEntry.type == EntryType.folder) {
+            try {
+                Entry nonreal = new Entry("...", null, null, null, null, EntryType.nonreal.toString(), new ArrayList<Entry>(entries));
+                entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, new ArrayList<Entry>(selectedEntry.children));
+                entryArrayAdapter.insert(nonreal, 0);
+                entries = new ArrayList<Entry>();
+                entries.add(nonreal);
+                entries.addAll(selectedEntry.children);
+                lv.setAdapter(entryArrayAdapter);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            entryArrayAdapter.notifyDataSetChanged();
+        } else if(selectedEntry.type == EntryType.nonreal) {
+            entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, new ArrayList<Entry>(selectedEntry.children));
+            entries = new ArrayList<Entry>(selectedEntry.children);
+            lv.setAdapter(entryArrayAdapter);
+            entryArrayAdapter.notifyDataSetChanged();
+        } else {
+            FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.mainLinearLayout, new EntryFragment(selectedEntry))
+                    .addToBackStack(null)
+                    .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                    .commit();
+        }
     }
 
     @Override
@@ -148,6 +179,7 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         public String name, description, updated, notes;
         public HashMap<String, String> fields;
         EntryType type;
+        List<Entry> children;
 
         private Entry(String name, String description,
                       String updated, String notes,
@@ -160,31 +192,45 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
             this.type = EntryType.getType(type);
         }
 
-        public static List<Entry> parseDecryptedXml(String rvlXml) throws Exception {
+        Entry(String name, String description,
+                      String updated, String notes,
+                      HashMap<String, String> fields, String type,
+                      List<Entry> entries) throws Exception {
+            this(name, description, updated, notes, fields, type);
+            this.children = entries;
+        }
+
+        public static List<Entry> parseDecryptedXml(String rvlXml, List<Entry> currentEntries)
+                throws Exception {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(new ByteArrayInputStream(rvlXml.getBytes("UTF-8")));
 
             doc.getDocumentElement().normalize();
-            NodeList nodeList = doc.getElementsByTagName(ENTRY_NODE_NAME);
+            Element rvlXML = doc.getDocumentElement();
+            NodeList nodeList = rvlXML.getChildNodes();
+
 
             List<Entry> result = new ArrayList<Entry>();
 
             for(int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    result.add(getEntry((Element) node));
+                    result.add(getEntry((Element) node, currentEntries));
                 }
             }
             return result;
         }
 
-        private static Entry getEntry(Element elem) throws Exception {
+        private static Entry getEntry(Element elem, List<Entry> previousEntries) throws Exception {
             String name = "", descr = "", updated = "", notes = "", type="";
             NodeList nameL = elem.getChildNodes();
             type = elem.getAttribute(TYPE_ATTRIBUTE);
 
             HashMap<String, String> attr = new HashMap();
+            List<Entry> children = new ArrayList<Entry>();
+
+
             for(int i = 0; i < nameL.getLength(); i++) {
                 Node item = nameL.item(i);
                 if(item.getNodeName().equals(NAME_ATTRIBUTE))
@@ -200,10 +246,17 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
                     String value = nameL.item(i).getTextContent();
                     if(fieldName != null)
                         attr.put(fieldName, value);
+                } else if(item.getNodeName().equals(ENTRY_NODE_NAME)) {
+                    children.add(getEntry((Element) item, previousEntries));
                 } else
                     ;//throw new Exception("Unknown node type - " + nameL.item(i).getNodeName());
             }
-            return new Entry(name, descr, updated, notes, attr, type);
+            if(EntryType.getType(type) == EntryType.folder) {
+                return new Entry(name, descr, updated, notes, attr, type, children);
+            } else {
+                return new Entry(name, descr, updated, notes, attr, type);
+            }
+
         }
 
         @Override
@@ -290,7 +343,9 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         }
     }
 
+
     static enum EntryType {
+        folder,
         creditcard,
         cryptokey,
         door,
@@ -302,9 +357,12 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         shell,
         vnc,
         website,
-        phone;
+        phone,
+        nonreal;
 
         static EntryType getType(String type) throws Exception {
+            if(type.equals(EntryType.folder.toString()))
+                return EntryType.folder;
             if(type.equals(EntryType.creditcard.toString()))
                 return EntryType.creditcard;
             else if(type.equals(EntryType.cryptokey.toString()))
@@ -329,10 +387,13 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
                 return EntryType.vnc;
             else if (type.equals(EntryType.website.toString()))
                 return EntryType.website;
+            else if (type.equals(EntryType.nonreal.toString()))
+                return EntryType.nonreal;
             else throw new Exception("Unknown type of entry - " + type);
         }
 
     }
+
 
     /**
      * Menu items of entry manipulating
@@ -357,4 +418,11 @@ public class FileEntriesFragment extends Fragment implements AdapterView.OnItemC
         }
     }
 
+    @Override
+    public void OnBackPressed() {
+        if(entryArrayAdapter.getItem(0) != null && entryArrayAdapter.getItem(0).type == EntryType.nonreal)
+            lv.performItemClick(null, 0, 0);
+        else
+            getFragmentManager().popBackStack();
+    }
 }

@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -45,7 +46,7 @@ public class CryptographerTest extends TestCase {
             input.read(fileData);
             input.close();
             String inputData = new String(fileData, "UTF-8");
-            FileEntriesFragment.Entry.parseDecryptedXml(inputData);
+            FileEntriesFragment.Entry.parseDecryptedXml(inputData, new ArrayList<FileEntriesFragment.Entry>());
         } catch (Exception e) {
             e.printStackTrace();
             assert(false);

@@ -25,7 +25,7 @@ import java.util.Arrays;
  * Date: 30.08.13
  * Time: 2:10
  */
-public class OpenFileFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class OpenFileFragment extends Fragment implements AdapterView.OnItemClickListener, IBackPressedListener {
 
     private static final String DEFAULT_PATH="/";
 
@@ -189,6 +189,8 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
 
         private String name;
 
+        private boolean isBackElement;
+
         FileWrapper(File file) {
             this.file = file;
             this.name = file.getName();
@@ -201,6 +203,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         FileWrapper(File file, String name) {
             this.file = file;
             this.name = name;
+            isBackElement = true;
         }
 
         File getFile() {
@@ -212,7 +215,16 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
             return name;
         }
 
+        public boolean isBackElement() {
+            return isBackElement;
+        }
     }
 
-
+    @Override
+    public void OnBackPressed() {
+        if(filesBrowserItems.get(0).isBackElement)
+            setLocation(filesBrowserItems.get(0));
+        else
+            getFragmentManager().popBackStack();
+    }
 }

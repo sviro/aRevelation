@@ -1,6 +1,7 @@
 package com.github.marmalade.aRevelation;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 
@@ -12,7 +13,7 @@ import android.os.Bundle;
  */
 public class MainActivity extends Activity {
 
-
+    private Fragment currentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +27,19 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
+        currentFragment = fragment;
+    }
+
+
+
+    @Override
     public void onBackPressed() {
-        getFragmentManager().popBackStack();
+        if(currentFragment instanceof IBackPressedListener) {
+            ((IBackPressedListener) currentFragment).OnBackPressed();
+        } else {
+            getFragmentManager().popBackStack();
+        }
     }
 }
