@@ -156,7 +156,9 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         try {
             String decryptedXML = Cryptographer.decrypt(file, password);
             FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.mainLinearLayout, FileEntriesFragment.newInstance(decryptedXML))
+            fragmentTransaction.replace(R.id.mainLinearLayout,
+                    FileEntriesFragment.newInstance(decryptedXML),
+                    MainActivity.FILE_ENTRIES_FRAGMENT)
                     .addToBackStack(null)
                     .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                     .commit();

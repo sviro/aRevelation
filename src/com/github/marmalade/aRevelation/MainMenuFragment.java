@@ -28,7 +28,8 @@ public class MainMenuFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.mainLinearLayout, new OpenFileFragment())
+        fragmentTransaction.replace(R.id.mainLinearLayout,
+                new OpenFileFragment(), MainActivity.OPEN_FILE_FRAGMENT)
         .addToBackStack(null)
         .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
         .commit();

@@ -120,7 +120,7 @@ public class FileEntriesFragment extends Fragment implements
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        // I really don't like this. I will make it a little bit more beautiful after.
+        // I really don't like this. I will make it a little bit more beautiful later.
 
         Entry selectedEntry = entryArrayAdapter.getItem(position);
         if(selectedEntry.type == EntryType.folder) {
@@ -143,7 +143,9 @@ public class FileEntriesFragment extends Fragment implements
             entryArrayAdapter.notifyDataSetChanged();
         } else {
             FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.mainLinearLayout, new EntryFragment(selectedEntry))
+            fragmentTransaction.replace(R.id.mainLinearLayout,
+                    new EntryFragment(selectedEntry),
+                    MainActivity.ENTRY_FRAGMENT)
                     .addToBackStack(null)
                     .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                     .commit();
