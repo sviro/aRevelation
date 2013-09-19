@@ -56,17 +56,12 @@ public class CryptographerTest extends TestCase {
     @Test
     public void testEncrypt() {
         try {
-            // Get decrypted data
+            // Get data
             String xml = readFileAsString(DECRYPTED_DATA_FILE_4_14);
 
-            // Get encrypted data
-            FileInputStream input = new FileInputStream(DECRYPTED_DATA_FILE_4_14);
-            byte[] er = new byte[input.available()];
-            input.read(er);
-            input.close();
-
-            byte[] ar = Cryptographer.encrypt(xml, "test");
-            assertTrue(Arrays.equals(ar, er));
+            byte[] encrypted = Cryptographer.encrypt(xml, "test");
+            String decrypt = Cryptographer.decrypt(encrypted, "text");
+            assertEquals(xml, decrypt);
 
         } catch (Exception e) {
             assert(false);

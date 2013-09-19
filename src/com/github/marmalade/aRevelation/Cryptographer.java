@@ -32,8 +32,15 @@ public class Cryptographer {
      * @throws Exception
      */
     public static String decrypt(File file, String password) throws Exception {
-        byte[] header = new byte[74];
-        new DataInputStream(new FileInputStream(file)).readFully(header);
+        RandomAccessFile f = new RandomAccessFile(file.getAbsoluteFile(), "r");
+        byte[] fileData = new byte[(int)f.length()];
+        f.read(fileData);
+        return decrypt(fileData, password);
+    }
+
+    public static String decrypt(byte[] fileData, String password) throws Exception {
+        byte[] header;
+        header = Arrays.copyOfRange(fileData, 0, 73);
 
         byte[] iv = null;
         byte[] salt = null;
@@ -49,10 +56,7 @@ public class Cryptographer {
                 Key k = new SecretKeySpec(s.getEncoded(),"AES");
                 cypher.init(Cipher.DECRYPT_MODE, k, new IvParameterSpec(iv));
 
-                RandomAccessFile f = new RandomAccessFile(file.getAbsoluteFile(), "r");
-                byte[] fileData = new byte[(int)f.length()];
-                f.read(fileData);
-                byte[] input = Arrays.copyOfRange(fileData, 36, (int)f.length());
+                byte[] input = Arrays.copyOfRange(fileData, 36, (int)fileData.length);
                 byte[] compressedData = cypher.doFinal(input);
 
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
