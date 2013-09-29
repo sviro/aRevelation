@@ -36,6 +36,7 @@ import android.widget.ListView;
 import javax.crypto.BadPaddingException;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -51,7 +52,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
 	private static final String PATH = "path";
 
     // Current path of a showed menu
-    private static String path;
+    private                                                                                                                                                                                                                                  String path;
 
     private ListView lv;
     private ArrayList<FileWrapper> filesBrowserItems = new ArrayList<FileWrapper>();
@@ -87,11 +88,6 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         super.onStart();
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
-
     
     public static OpenFileFragment newInstance(String path) {
     	OpenFileFragment fragment = new OpenFileFragment();
@@ -122,6 +118,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         lv.setSelection(0);         // Go to the top
     }
 
+
     private void openFile(final File file) {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
             @Override
@@ -132,7 +129,6 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
                         break;
 
                     case DialogInterface.BUTTON_NEGATIVE:
-                        // Nothing to do
                         break;
                 }
             }
@@ -171,12 +167,16 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
                 .show();
     }
 
+
     private void tryToOpenFile(File file, String password) {
         try {
-            String decryptedXML = Cryptographer.decrypt(file, password);
+            RandomAccessFile f = new RandomAccessFile(file.getAbsoluteFile(), "r");
+            byte[] fileData = new byte[(int)f.length()];
+            f.read(fileData);
+            String decryptedXML = Cryptographer.decrypt(fileData, password);
             FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
             fragmentTransaction.replace(R.id.mainLinearLayout,
-                    FileEntriesFragment.newInstance(decryptedXML),
+                    FileEntriesFragment.newInstance(decryptedXML, fileData, password),
                     MainActivity.FILE_ENTRIES_FRAGMENT)
                     .addToBackStack(null)
                     .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
@@ -195,6 +195,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         }
     }
 
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         FileWrapper clickedFile = filesBrowserItems.get(position);
@@ -203,6 +204,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         else if (clickedFile.getFile().isFile() && clickedFile.getFile().canRead())
             openFile(clickedFile.getFile());
     }
+
 
     private class FileWrapper {
 
@@ -241,8 +243,9 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
         }
     }
 
+
     @Override
-    public void OnBackPressed() {
+    public void onBackPressed() {
         if(filesBrowserItems.get(0).isBackElement)
             setLocation(filesBrowserItems.get(0));
         else

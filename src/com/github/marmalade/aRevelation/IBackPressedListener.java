@@ -24,6 +24,6 @@ package com.github.marmalade.aRevelation;
  */
 public interface IBackPressedListener {
 
-    public void OnBackPressed();
+    public void onBackPressed();
 
 }

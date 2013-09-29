@@ -65,7 +65,7 @@ public class CryptographerTest extends TestCase {
             input.read(fileData);
             input.close();
             String inputData = new String(fileData, "UTF-8");
-            FileEntriesFragment.Entry.parseDecryptedXml(inputData, new ArrayList<FileEntriesFragment.Entry>());
+            FileEntriesFragment.Entry.parseDecryptedXml(inputData);
         } catch (Exception e) {
             e.printStackTrace();
             assert(false);

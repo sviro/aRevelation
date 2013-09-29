@@ -25,26 +25,23 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.ListView;
+import android.widget.*;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.crypto.BadPaddingException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -66,8 +63,12 @@ public class FileEntriesFragment extends Fragment implements
     final static String FIELD_ATTRIBUTE             = "field";
     final static String ID_ATTRIBUTE                = "id";
 	private static final String DECRYPTED_XML       = "decrypted_xml";
+	private static final String ENCRYPTED_XML       = "encrypted_xml";
+	private static final String PASSWORD            = "password";
 
-    private static String decryptedXML;
+    private String decryptedXML;
+    private byte[] encryptedXML;
+    private String password;
     private ListView lv;
     private int savedScrollBarPosition;
     private int top;
@@ -76,13 +77,15 @@ public class FileEntriesFragment extends Fragment implements
     private Activity activity;
     
 
-    public static FileEntriesFragment newInstance(String decryptedXML) {
+    public static FileEntriesFragment newInstance(String decryptedXML, byte[] encryptedXML, String password) {
     	FileEntriesFragment fragment = new FileEntriesFragment();
     	
     	Bundle bundle = new Bundle();
     	bundle.putString(DECRYPTED_XML, decryptedXML);
+    	bundle.putString(PASSWORD, password);
+        bundle.putByteArray(ENCRYPTED_XML, encryptedXML);
     	fragment.setArguments(bundle);
-    	
+
     	return fragment;
     }
     
@@ -92,9 +95,10 @@ public class FileEntriesFragment extends Fragment implements
     	
     	Bundle arguments = getArguments();
     	if (arguments != null) {
-		decryptedXML = arguments.getString(DECRYPTED_XML);
-	}
-
+		    decryptedXML = arguments.getString(DECRYPTED_XML);
+            encryptedXML = arguments.getByteArray(ENCRYPTED_XML);
+            password = arguments.getString(PASSWORD);
+        }
     }
 
 
@@ -102,6 +106,32 @@ public class FileEntriesFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.activity = getActivity();
         return inflater.inflate(R.layout.decrypted_file_layout, container, false);
+    }
+
+
+    @Override
+    public void onStart() {
+        lv = (ListView)activity.findViewById(R.id.itemsListView);
+        lv.setOnItemClickListener(this);
+        lv.setOnItemLongClickListener(this);
+        try {
+            if(entries == null) {
+                entries = Entry.parseDecryptedXml(decryptedXML);
+            } else if(entries.isEmpty()) {
+                // Blocked state
+                if(decryptedXML == null && encryptedXML != null) {
+                    restoreAccess();
+                } else
+                    entries = Entry.parseDecryptedXml(decryptedXML);
+            }
+            updateEntries();
+        } catch (Exception e) {
+            //TODO Process error
+            e.printStackTrace();
+        }
+        super.onStart();
+        // Restore previous position
+        lv.setSelectionFromTop(savedScrollBarPosition, top);
     }
 
 
@@ -115,39 +145,17 @@ public class FileEntriesFragment extends Fragment implements
 
 
     @Override
-    public void onStart() {
-        lv = (ListView)activity.findViewById(R.id.itemsListView);
-        lv.setOnItemClickListener(this);
-        lv.setOnItemLongClickListener(this);
-        try {
-            if(entries == null)
-                entries = Entry.parseDecryptedXml(decryptedXML, entries);
-
-            entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
-            lv.setAdapter(entryArrayAdapter);
-            entryArrayAdapter.notifyDataSetChanged();
-        } catch (Exception e) {
-            //TODO Process error
-            e.printStackTrace();
-        }
-        super.onStart();
-        // Restore previous position
-        lv.setSelectionFromTop(savedScrollBarPosition, top);
-    }
-
-
-    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // I really don't like this. I will make it a little bit more beautiful later.
 
         Entry selectedEntry = entryArrayAdapter.getItem(position);
         if(selectedEntry.type == EntryType.folder) {
             try {
-                Entry nonreal = new Entry("...", null, null, null, null, EntryType.nonreal.toString(), new ArrayList<Entry>(entries));
+                Entry nonReal = new Entry("...", null, null, null, null, EntryType.nonreal.toString(), new ArrayList<Entry>(entries));
                 entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, new ArrayList<Entry>(selectedEntry.children));
-                entryArrayAdapter.insert(nonreal, 0);
+                entryArrayAdapter.insert(nonReal, 0);
                 entries = new ArrayList<Entry>();
-                entries.add(nonreal);
+                entries.add(nonReal);
                 entries.addAll(selectedEntry.children);
                 lv.setAdapter(entryArrayAdapter);
             } catch (Exception e) {
@@ -162,13 +170,14 @@ public class FileEntriesFragment extends Fragment implements
         } else {
             FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
             fragmentTransaction.replace(R.id.mainLinearLayout,
-                    new EntryFragment(selectedEntry),
+                    new EntryFragment(selectedEntry, password),
                     MainActivity.ENTRY_FRAGMENT)
                     .addToBackStack(null)
                     .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
                     .commit();
         }
     }
+
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -191,6 +200,89 @@ public class FileEntriesFragment extends Fragment implements
         Dialog d = builder.create();
         d.show();
         return false;
+    }
+
+
+    /**
+     * Block access to decrypted data on application exit (home button pressed)
+     */
+    public void blockAccess() {
+        getArguments().remove(DECRYPTED_XML);
+        decryptedXML = null;
+        entries.clear();
+    }
+
+
+    /**
+     * Restore access on application open
+     */
+    private void restoreAccess() {
+        final EditText input = new EditText(getActivity());
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        tryToDecrypt(input.getText().toString());
+                        updateEntries();
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        FileEntriesFragment.this.onBackPressed(); // Go to file menu
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("Input password")
+                .setView(input)
+                .setNegativeButton("Cancel", dialogClickListener)
+                .setPositiveButton("Submit", dialogClickListener)
+                .show();
+    }
+
+
+    /**
+     * Try to decrypt current encrypted data with user's password. If it is failed - it returns to restoreAccess and
+     * suggests to enter password again or cancel.
+     * @param password User's password
+     */
+    private void tryToDecrypt(String password) {
+        try {
+            decryptedXML = Cryptographer.decrypt(encryptedXML, password);
+            entries = Entry.parseDecryptedXml(decryptedXML);
+        } catch (BadPaddingException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+            builder.setTitle("Error")
+                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            restoreAccess();
+                        }
+                    })
+                    .setMessage("Invalid password");
+            builder.show();
+        } catch (Exception e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+            builder.setTitle("Error")
+                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            restoreAccess();
+                        }
+                    })
+                    .setMessage(e.getMessage());
+            builder.show();
+        }
+    }
+
+
+    private void updateEntries() {
+        entryArrayAdapter = new ArrayAdapter<Entry>(activity, android.R.layout.simple_list_item_1, entries);
+        lv.setAdapter(entryArrayAdapter);
+        entryArrayAdapter.notifyDataSetChanged();
     }
 
 
@@ -220,7 +312,7 @@ public class FileEntriesFragment extends Fragment implements
             this.children = entries;
         }
 
-        public static List<Entry> parseDecryptedXml(String rvlXml, List<Entry> currentEntries)
+        public static List<Entry> parseDecryptedXml(String rvlXml)
                 throws Exception {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -236,18 +328,18 @@ public class FileEntriesFragment extends Fragment implements
             for(int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    result.add(getEntry((Element) node, currentEntries));
+                    result.add(getEntry((Element) node));
                 }
             }
             return result;
         }
 
-        private static Entry getEntry(Element elem, List<Entry> previousEntries) throws Exception {
+        private static Entry getEntry(Element elem) throws Exception {
             String name = "", descr = "", updated = "", notes = "", type="";
             NodeList nameL = elem.getChildNodes();
             type = elem.getAttribute(TYPE_ATTRIBUTE);
 
-            HashMap<String, String> attr = new HashMap();
+            HashMap<String, String> attr = new HashMap<String, String>();
             List<Entry> children = new ArrayList<Entry>();
 
 
@@ -267,7 +359,7 @@ public class FileEntriesFragment extends Fragment implements
                     if(fieldName != null)
                         attr.put(fieldName, value);
                 } else if(item.getNodeName().equals(ENTRY_NODE_NAME)) {
-                    children.add(getEntry((Element) item, previousEntries));
+                    children.add(getEntry((Element) item));
                 } else
                     ;//throw new Exception("Unknown node type - " + nameL.item(i).getNodeName());
             }
@@ -438,9 +530,10 @@ public class FileEntriesFragment extends Fragment implements
         }
     }
 
+
     @Override
-    public void OnBackPressed() {
-        if(entryArrayAdapter.getItem(0) != null && entryArrayAdapter.getItem(0).type == EntryType.nonreal)
+    public void onBackPressed() {
+        if(entryArrayAdapter.getCount() > 0 && entryArrayAdapter.getItem(0).type == EntryType.nonreal)
             lv.performItemClick(null, 0, 0);
         else
             getFragmentManager().popBackStack();

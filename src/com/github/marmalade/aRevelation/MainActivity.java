@@ -23,6 +23,7 @@ package com.github.marmalade.aRevelation;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 
 
@@ -51,27 +52,48 @@ public class MainActivity extends Activity {
 
 
     @Override
+    protected void onPause() {
+        // Close access
+        Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof FileEntriesFragment)
+            ((FileEntriesFragment)currentFragment).blockAccess();
+        else if (currentFragment instanceof EntryFragment)
+            ((EntryFragment)currentFragment).blockAccess();
+        super.onPause();
+    }
+
+    @Override
     public void onBackPressed() {
         Fragment currentFragment = getCurrentFragment();
         if(currentFragment instanceof IBackPressedListener) {
-            ((IBackPressedListener) currentFragment).OnBackPressed();
+            ((IBackPressedListener) currentFragment).onBackPressed();
         } else {
             getFragmentManager().popBackStack();
         }
     }
 
 
-    private Fragment getCurrentFragment() {
+    Fragment getCurrentFragment() {
         Fragment myFragment = getFragmentManager().findFragmentByTag(MAIN_MENU_FRAGMENT);
         if (myFragment.isVisible()) return myFragment;
-        myFragment = getFragmentManager().findFragmentByTag(OPEN_FILE_FRAGMENT);
+            myFragment = getFragmentManager().findFragmentByTag(OPEN_FILE_FRAGMENT);
         if (myFragment.isVisible()) return myFragment;
-        myFragment = getFragmentManager().findFragmentByTag(FILE_ENTRIES_FRAGMENT);
+            myFragment = getFragmentManager().findFragmentByTag(FILE_ENTRIES_FRAGMENT);
         if (myFragment.isVisible()) return myFragment;
-        myFragment = getFragmentManager().findFragmentByTag(ENTRY_FRAGMENT);
+            myFragment = getFragmentManager().findFragmentByTag(ENTRY_FRAGMENT);
         if (myFragment.isVisible()) return myFragment;
-        else return null;
+            else return null;
 
     }
 
+
+    public void reload() {
+        Intent intent = getIntent();
+        overridePendingTransition(0, 0);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        finish();
+
+        overridePendingTransition(0, 0);
+        startActivity(intent);
+    }
 }
