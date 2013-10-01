@@ -52,7 +52,7 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
 	private static final String PATH = "path";
 
     // Current path of a showed menu
-    private                                                                                                                                                                                                                                  String path;
+    private String path;
 
     private ListView lv;
     private ArrayList<FileWrapper> filesBrowserItems = new ArrayList<FileWrapper>();
@@ -134,14 +134,14 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
             }
 
             private void askPassword(final File file) {
-                final EditText input = new EditText(OpenFileFragment.this.getActivity());
-                input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                final AskPasswordDialogFragment d = new AskPasswordDialogFragment();
+
+                AskPasswordDialogFragment.AskPasswordOnClickListener dialogClickListener =  d.new AskPasswordOnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which){
                             case DialogInterface.BUTTON_POSITIVE:
-                                tryToOpenFile(file, input.getText().toString());
+                                tryToOpenFile(file, d.editText.getEditableText().toString());
                                 break;
 
                             case DialogInterface.BUTTON_NEGATIVE:
@@ -151,12 +151,8 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
                     }
                 };
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(OpenFileFragment.this.getActivity());
-                builder.setMessage("Input password")
-                        .setView(input)
-                        .setNegativeButton("Cancel", dialogClickListener)
-                        .setPositiveButton("Submit", dialogClickListener)
-                        .show();
+                d.setOnClickListener(dialogClickListener);
+                d.show(getFragmentManager(), null);
             }
         };
 

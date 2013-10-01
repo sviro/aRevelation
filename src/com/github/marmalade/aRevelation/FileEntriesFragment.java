@@ -217,14 +217,14 @@ public class FileEntriesFragment extends Fragment implements
      * Restore access on application open
      */
     private void restoreAccess() {
-        final EditText input = new EditText(getActivity());
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        final AskPasswordDialogFragment d = new AskPasswordDialogFragment();
+
+        AskPasswordDialogFragment.AskPasswordOnClickListener dialogClickListener =  d.new AskPasswordOnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which){
                     case DialogInterface.BUTTON_POSITIVE:
-                        tryToDecrypt(input.getText().toString());
+                        tryToDecrypt(d.editText.getEditableText().toString());
                         updateEntries();
                         break;
 
@@ -235,12 +235,8 @@ public class FileEntriesFragment extends Fragment implements
             }
         };
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage("Input password")
-                .setView(input)
-                .setNegativeButton("Cancel", dialogClickListener)
-                .setPositiveButton("Submit", dialogClickListener)
-                .show();
+        d.setOnClickListener(dialogClickListener);
+        d.show(getFragmentManager(), null);
     }
 
 
