@@ -141,6 +141,7 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
         };
 
         d.setOnClickListener(dialogClickListener);
+        d.setCancelable(false);
         d.show(getFragmentManager(), null);
     }
 

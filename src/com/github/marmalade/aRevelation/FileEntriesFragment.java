@@ -236,6 +236,7 @@ public class FileEntriesFragment extends Fragment implements
         };
 
         d.setOnClickListener(dialogClickListener);
+        d.setCancelable(false);
         d.show(getFragmentManager(), null);
     }
 
