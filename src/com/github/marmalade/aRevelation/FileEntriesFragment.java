@@ -25,7 +25,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -181,15 +180,15 @@ public class FileEntriesFragment extends Fragment implements
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-        final ActionsMenuItems[] menuItems = new ActionsMenuItems[] {ActionsMenuItems.copySecretData};
-        ArrayAdapter<ActionsMenuItems> menuAdapter = new ArrayAdapter<ActionsMenuItems>(activity,
+        final LongClickActionItems[] menuItems = new LongClickActionItems[] {LongClickActionItems.copySecretData};
+        ArrayAdapter<LongClickActionItems> menuAdapter = new ArrayAdapter<LongClickActionItems>(activity,
                 android.R.layout.simple_list_item_1, menuItems);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        final CharSequence[] items= ActionsMenuItems.getCharSequences();
+        final CharSequence[] items= LongClickActionItems.getCharSequences();
         builder.setItems(items,new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(items[which].equals(ActionsMenuItems.copySecretData.toString())) {
+                if(items[which].equals(LongClickActionItems.copySecretData.toString())) {
                     ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
                     ClipData clip = ClipData.newPlainText("pass", entries.get(position).getSecretFieldData());
                     clipboard.setPrimaryClip(clip);
@@ -507,15 +506,17 @@ public class FileEntriesFragment extends Fragment implements
     /**
      * Menu items of entry manipulating
      */
-    static enum ActionsMenuItems {
+    private static enum LongClickActionItems {
         copySecretData;
 
         @Override
         public String toString() {
-            if(this == ActionsMenuItems.copySecretData)
-                return "Copy secret data";
-            else
-                return super.toString();
+            switch (this) {
+                case copySecretData:
+                    return "Copy secret data";
+                default:
+                    return super.toString();
+            }
         }
 
         static CharSequence[] getCharSequences() {

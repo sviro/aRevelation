@@ -21,18 +21,17 @@ package com.github.marmalade.aRevelation;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Fragment;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.text.InputType;
-import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,11 +48,14 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
     private static final String PASSWORD = "password";
 
     private ListView lv;
+
     private Activity activity;
     private FileEntriesFragment.Entry entry;
     private String password;
     private boolean isBlocked;
     HashMap<String, String> values;
+    SimpleAdapter adapter;
+    List<Map<String, String>> data;
 
 
     EntryFragment(FileEntriesFragment.Entry entry, String password) {
@@ -109,8 +111,8 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
 
     void blockAccess() {
         isBlocked = true;
-        this.values = new HashMap<String, String>();
-        ((SimpleAdapter)lv.getAdapter()).notifyDataSetChanged();
+        data.clear();
+        adapter.notifyDataSetChanged();
     }
 
 
@@ -149,7 +151,7 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
     private void showRevelationEntry(FileEntriesFragment.Entry entry, Activity activity) {
         lv.setOnItemClickListener(this);
         lv.setOnItemLongClickListener(this);
-        List<Map<String, String>> data = new ArrayList<Map<String, String>>();
+        data = new ArrayList<Map<String, String>>();
         values = new HashMap<String, String>();
         values.put("First Line", activity.getString(R.string.name));
         values.put("Second Line", entry.name);
@@ -173,7 +175,7 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
         values.put("Second Line", entry.updated);
         data.add(values);
 
-        SimpleAdapter adapter = new SimpleAdapter(activity, data,
+        adapter = new SimpleAdapter(activity, data,
                 android.R.layout.simple_list_item_2,
                 new String[] {"First Line", "Second Line" },
                 new int[] {android.R.id.text1, android.R.id.text2 });
@@ -183,8 +185,25 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
 
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //TODO Implement behaviour
+    public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        final CharSequence[] items= ClickActionItems.getCharSequences();
+        builder.setItems(items,new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(items[which].equals(ClickActionItems.copy.toString())) {
+                    ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                    Map<String, String> item = (Map<String, String>)lv.getAdapter().getItem(position);
+                    if(item.values().size() == 1) {
+                        ClipData clip = ClipData.newPlainText("pass", item.values().iterator().next());
+                        clipboard.setPrimaryClip(clip);
+                    }
+                }
+            }
+        });
+
+        Dialog d = builder.create();
+        d.show();
     }
 
 
@@ -192,6 +211,29 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         //TODO Implement behaviour
         return false;
+    }
+
+
+    private static enum ClickActionItems {
+        copy;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case copy:
+                    return "Copy";
+                default:
+                    return super.toString();
+            }
+        }
+
+        static CharSequence[] getCharSequences() {
+            CharSequence[] result = new CharSequence[values().length];
+            for(int i = 0; i < values().length; i++) {
+                result[i] = values()[i].toString();
+            }
+            return result;
+        }
     }
 
 }
