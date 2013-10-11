@@ -99,11 +99,6 @@ public class OpenFileFragment extends Fragment implements AdapterView.OnItemClic
     	return fragment;
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
 
     private void setLocation(FileWrapper path) {
         this.path = path.getFile().getAbsolutePath();
