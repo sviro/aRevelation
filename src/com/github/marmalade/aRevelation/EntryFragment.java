@@ -46,6 +46,8 @@ import java.util.Map;
 public class EntryFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     private static final String PASSWORD = "password";
+    private static final String ROW_HEADER_IDENTIFIER = "First Line";
+    private static final String ROW_DATA_IDENTIFIER = "Second Line";
 
     private ListView lv;
 
@@ -153,31 +155,31 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
         lv.setOnItemLongClickListener(this);
         data = new ArrayList<Map<String, String>>();
         values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.name));
-        values.put("Second Line", entry.name);
+        values.put(ROW_HEADER_IDENTIFIER, activity.getString(R.string.name));
+        values.put(ROW_DATA_IDENTIFIER, entry.name);
         data.add(values);
         values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.description));
-        values.put("Second Line", entry.description);
+        values.put(ROW_HEADER_IDENTIFIER, activity.getString(R.string.description));
+        values.put(ROW_DATA_IDENTIFIER, entry.description);
         data.add(values);
         for(String key : entry.fields.keySet()) {
             values = new HashMap<String, String>();
-            values.put("First Line", FileEntriesFragment.Entry.getFieldName(key, activity));
-            values.put("Second Line", entry.fields.get(key));
+            values.put(ROW_HEADER_IDENTIFIER, FileEntriesFragment.Entry.getFieldName(key, activity));
+            values.put(ROW_DATA_IDENTIFIER, entry.fields.get(key));
             data.add(values);
         }
         values = new HashMap<String, String>();
-        values.put("First Line", activity.getString(R.string.notes));
-        values.put("Second Line", entry.notes);
+        values.put(ROW_HEADER_IDENTIFIER, activity.getString(R.string.notes));
+        values.put(ROW_DATA_IDENTIFIER, entry.notes);
         data.add(values);
         values = new HashMap<String, String>();
-        values.put("First Line", "Updated");
-        values.put("Second Line", entry.updated);
+        values.put(ROW_HEADER_IDENTIFIER, "Updated");
+        values.put(ROW_DATA_IDENTIFIER, entry.updated);
         data.add(values);
 
         adapter = new SimpleAdapter(activity, data,
                 android.R.layout.simple_list_item_2,
-                new String[] {"First Line", "Second Line" },
+                new String[] {ROW_HEADER_IDENTIFIER, ROW_DATA_IDENTIFIER },
                 new int[] {android.R.id.text1, android.R.id.text2 });
         lv.setAdapter(adapter);
         adapter.notifyDataSetChanged();
@@ -194,8 +196,8 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
                 if(items[which].equals(ClickActionItems.copy.toString())) {
                     ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
                     Map<String, String> item = (Map<String, String>)lv.getAdapter().getItem(position);
-                    if(item.values().size() == 1) {
-                        ClipData clip = ClipData.newPlainText("pass", item.values().iterator().next());
+                    if(item.values().size() == 2) {
+                        ClipData clip = ClipData.newPlainText("aRevelation data", item.get(ROW_DATA_IDENTIFIER));
                         clipboard.setPrimaryClip(clip);
                     }
                 }
