@@ -40,6 +40,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -282,7 +283,7 @@ public class FileEntriesFragment extends Fragment implements
     }
 
 
-    public static class Entry {
+    public static class Entry implements Serializable {
 
         public String name, description, updated, notes;
         public HashMap<String, String> fields;

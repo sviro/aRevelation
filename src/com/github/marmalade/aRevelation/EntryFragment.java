@@ -46,6 +46,8 @@ import java.util.Map;
 public class EntryFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     private static final String PASSWORD = "password";
+    private static final String ENTRY = "entry";
+    private static final String BLOCKED = "blocked";
     private static final String ROW_HEADER_IDENTIFIER = "First Line";
     private static final String ROW_DATA_IDENTIFIER = "Second Line";
 
@@ -59,13 +61,16 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
     SimpleAdapter adapter;
     List<Map<String, String>> data;
 
+    /**
+     * This constructor is used on restore if the process was killed.
+     * You shouldn't remove it.
+     */
+    public EntryFragment() {};
+
 
     EntryFragment(FileEntriesFragment.Entry entry, String password) {
         this.entry = entry;
-        Bundle bundle = new Bundle();
-        bundle.putString(PASSWORD, password);
-        setArguments(bundle);
-
+        this.password = password;
     }
 
 
@@ -76,18 +81,12 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
 
 
     @Override
-    public void onResume() {
-        Bundle savesState = this.getArguments();
-        if(savesState != null)
-            password = savesState.getString(PASSWORD);
-        super.onResume();
-    }
-
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
-        if(savedInstanceState != null)
+        if(savedInstanceState != null) {
             password = savedInstanceState.getString(PASSWORD);
+            entry = (FileEntriesFragment.Entry) savedInstanceState.getSerializable(ENTRY);
+            isBlocked = savedInstanceState.getBoolean(BLOCKED);
+        }
         activity = getActivity();
         super.onCreate(savedInstanceState);
     }
@@ -108,6 +107,9 @@ public class EntryFragment extends Fragment implements AdapterView.OnItemClickLi
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(PASSWORD, password);
+        outState.putSerializable(ENTRY, entry);
+        blockAccess();
+        outState.putBoolean(BLOCKED, isBlocked);
     }
 
 
