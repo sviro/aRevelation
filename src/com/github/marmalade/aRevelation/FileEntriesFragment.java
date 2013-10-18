@@ -25,6 +25,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,12 +63,13 @@ public class FileEntriesFragment extends Fragment implements
     final static String NOTES_ATTRIBUTE             = "notes";
     final static String FIELD_ATTRIBUTE             = "field";
     final static String ID_ATTRIBUTE                = "id";
-	private static final String DECRYPTED_XML       = "decrypted_xml";
-	private static final String ENCRYPTED_XML       = "encrypted_xml";
-	private static final String PASSWORD            = "password";
+    private static final String DECRYPTED_XML       = "decrypted_xml";
+    private static final String PASSWORD            = "password";
+    private static final String BLOCKED             = "isBlocked";
+    private static final String POSITION            = "position";
+    private static final String TOP                 = "top";
 
     private String decryptedXML;
-    private byte[] encryptedXML;
     private String password;
     private ListView lv;
     private int savedScrollBarPosition;
@@ -75,30 +77,50 @@ public class FileEntriesFragment extends Fragment implements
     private List<Entry> entries;
     private ArrayAdapter<Entry> entryArrayAdapter;
     private Activity activity;
-    
+    private boolean isBlocked;
+
+
+    /**
+     * This constructor is used on restore if the process was killed.
+     * You shouldn't remove it.
+     */
+    public FileEntriesFragment() {};
+
 
     public static FileEntriesFragment newInstance(String decryptedXML, byte[] encryptedXML, String password) {
     	FileEntriesFragment fragment = new FileEntriesFragment();
-    	
+
     	Bundle bundle = new Bundle();
     	bundle.putString(DECRYPTED_XML, decryptedXML);
     	bundle.putString(PASSWORD, password);
-        bundle.putByteArray(ENCRYPTED_XML, encryptedXML);
+        bundle.putBoolean(BLOCKED, false);
     	fragment.setArguments(bundle);
 
     	return fragment;
     }
-    
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	super.onCreate(savedInstanceState);
-    	
-    	Bundle arguments = getArguments();
-    	if (arguments != null) {
-		    decryptedXML = arguments.getString(DECRYPTED_XML);
-            encryptedXML = arguments.getByteArray(ENCRYPTED_XML);
+    	if (savedInstanceState != null) {
+            Log.w("aRevelation", "savedInstanceState");
+		    decryptedXML = savedInstanceState.getString(DECRYPTED_XML);
+            password = savedInstanceState.getString(PASSWORD);
+            isBlocked = savedInstanceState.getBoolean(BLOCKED);
+            savedScrollBarPosition = savedInstanceState.getInt(POSITION);
+            top = savedInstanceState.getInt(TOP);
+            Log.w("aRevelation", String.valueOf(isBlocked));
+        } else if (getArguments() != null) {
+            Log.w("aRevelation", "arguments");
+            Bundle arguments = getArguments();
+            decryptedXML = arguments.getString(DECRYPTED_XML);
             password = arguments.getString(PASSWORD);
+            isBlocked = arguments.getBoolean(BLOCKED);
+            savedScrollBarPosition = arguments.getInt(POSITION);
+            top = arguments.getInt(TOP);
+            Log.w("aRevelation", String.valueOf(isBlocked));
         }
+        super.onCreate(savedInstanceState);
     }
 
 
@@ -115,23 +137,19 @@ public class FileEntriesFragment extends Fragment implements
         lv.setOnItemClickListener(this);
         lv.setOnItemLongClickListener(this);
         try {
-            if(entries == null) {
+            if(isBlocked) {
+                restoreAccess();
+            } else {
                 entries = Entry.parseDecryptedXml(decryptedXML);
-            } else if(entries.isEmpty()) {
-                // Blocked state
-                if(decryptedXML == null && encryptedXML != null) {
-                    restoreAccess();
-                } else
-                    entries = Entry.parseDecryptedXml(decryptedXML);
+                updateEntries();
+                lv.setSelectionFromTop(savedScrollBarPosition, top);
             }
-            updateEntries();
         } catch (Exception e) {
             //TODO Process error
             e.printStackTrace();
         }
         super.onStart();
         // Restore previous position
-        lv.setSelectionFromTop(savedScrollBarPosition, top);
     }
 
 
@@ -141,6 +159,18 @@ public class FileEntriesFragment extends Fragment implements
         savedScrollBarPosition = lv.getFirstVisiblePosition();
         top = (lv.getChildAt(0) == null) ? 0 : lv.getChildAt(0).getTop();
         super.onPause();
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        blockAccess();
+        outState.putString(DECRYPTED_XML, decryptedXML);
+        outState.putString(PASSWORD, password);
+        outState.putBoolean(BLOCKED, isBlocked);
+        outState.putInt(POSITION, savedScrollBarPosition);
+        outState.putInt(TOP, top);
     }
 
 
@@ -191,7 +221,7 @@ public class FileEntriesFragment extends Fragment implements
             public void onClick(DialogInterface dialog, int which) {
                 if(items[which].equals(LongClickActionItems.copySecretData.toString())) {
                     ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("pass", entries.get(position).getSecretFieldData());
+                    ClipData clip = ClipData.newPlainText("pass", entryArrayAdapter.getItem(position).getSecretFieldData());
                     clipboard.setPrimaryClip(clip);
                 }
             }
@@ -207,9 +237,10 @@ public class FileEntriesFragment extends Fragment implements
      * Block access to decrypted data on application exit (home button pressed)
      */
     public void blockAccess() {
-        getArguments().remove(DECRYPTED_XML);
-        decryptedXML = null;
-        entries.clear();
+        // The adapter could be null on restore access if cancel button is pressed
+        if(entryArrayAdapter != null)
+            entryArrayAdapter.clear();
+        isBlocked = true;
     }
 
 
@@ -222,14 +253,24 @@ public class FileEntriesFragment extends Fragment implements
         AskPasswordDialogFragment.AskPasswordOnClickListener dialogClickListener =  d.new AskPasswordOnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (which){
+                switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
-                        tryToDecrypt(d.editText.getEditableText().toString());
-                        updateEntries();
+                        if(password.equals(d.editText.getEditableText().toString())) {
+                            try {
+                                entries = Entry.parseDecryptedXml(decryptedXML);
+                                updateEntries();
+                                lv.setSelectionFromTop(savedScrollBarPosition, top);
+                                isBlocked = false;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            restoreAccess();
+                        }
                         break;
 
                     case DialogInterface.BUTTON_NEGATIVE:
-                        FileEntriesFragment.this.onBackPressed(); // Go to file menu
+                        ((MainActivity)getActivity()).reload(); // Go to file menu
                         break;
                 }
             }
@@ -238,41 +279,6 @@ public class FileEntriesFragment extends Fragment implements
         d.setOnClickListener(dialogClickListener);
         d.setCancelable(false);
         d.show(getFragmentManager(), null);
-    }
-
-
-    /**
-     * Try to decrypt current encrypted data with user's password. If it is failed - it returns to restoreAccess and
-     * suggests to enter password again or cancel.
-     * @param password User's password
-     */
-    private void tryToDecrypt(String password) {
-        try {
-            decryptedXML = Cryptographer.decrypt(encryptedXML, password);
-            entries = Entry.parseDecryptedXml(decryptedXML);
-        } catch (BadPaddingException e) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-            builder.setTitle("Error")
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            restoreAccess();
-                        }
-                    })
-                    .setMessage("Invalid password");
-            builder.show();
-        } catch (Exception e) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
-            builder.setTitle("Error")
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            restoreAccess();
-                        }
-                    })
-                    .setMessage(e.getMessage());
-            builder.show();
-        }
     }
 
 
