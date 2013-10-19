@@ -65,6 +65,11 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof MainMenuFragment) {
+            super.onBackPressed();
+            return;
+        }
+
         if(currentFragment instanceof IBackPressedListener) {
             ((IBackPressedListener) currentFragment).onBackPressed();
         } else {
